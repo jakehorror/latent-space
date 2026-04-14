@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Common Ports — Active Recall</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a0f;
+    color: #e0e0f0;
+    font-family: 'Georgia', serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 32px 16px 64px;
+  }
+
+  h1 {
+    font-size: 1rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  #subtitle {
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.18);
+    text-transform: uppercase;
+    margin-bottom: 36px;
+    text-align: center;
+  }
+
+  /* SCORE BAR */
+  #scorebar {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 28px;
+    font-size: 0.82rem;
+    letter-spacing: 0.1em;
+  }
+  .score-item { text-align: center; }
+  .score-num { font-size: 1.6rem; font-weight: 300; }
+  .score-label { color: rgba(255,255,255,0.3); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; }
+  #correct-num { color: #4ade80; }
+  #wrong-num { color: #f87171; }
+  #remain-num { color: rgba(255,255,255,0.5); }
+
+  /* PROGRESS */
+  #progress-bar {
+    width: 100%;
+    max-width: 640px;
+    height: 3px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 2px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  #progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  /* CARD */
+  #card {
+    width: 100%;
+    max-width: 640px;
+    min-height: 260px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 40px 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    transition: opacity 0.3s;
+  }
+
+  #question-type {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(150,150,255,0.6);
+  }
+
+  #question-text {
+    font-size: clamp(1.1rem, 3vw, 1.4rem);
+    line-height: 1.6;
+    color: rgba(255,255,255,0.9);
+  }
+
+  #question-text strong {
+    color: #a78bfa;
+  }
+
+  /* ANSWER INPUT AREA */
+  #answer-area {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Multiple choice */
+  .choice-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    color: rgba(255,255,255,0.8);
+    font-family: 'Georgia', serif;
+    font-size: 0.9rem;
+    padding: 14px 20px;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    line-height: 1.5;
+  }
+  .choice-btn:hover:not(:disabled) {
+    background: rgba(100,100,255,0.12);
+    border-color: rgba(100,100,255,0.3);
+  }
+  .choice-btn.correct {
+    background: rgba(74,222,128,0.12);
+    border-color: #4ade80;
+    color: #4ade80;
+  }
+  .choice-btn.wrong {
+    background: rgba(248,113,113,0.1);
+    border-color: #f87171;
+    color: #f87171;
+  }
+  .choice-btn.reveal {
+    background: rgba(74,222,128,0.08);
+    border-color: rgba(74,222,128,0.4);
+    color: rgba(74,222,128,0.8);
+  }
+  .choice-btn:disabled { cursor: default; }
+
+  /* Text input style */
+  #text-input {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    color: #e0e0f0;
+    font-family: 'Georgia', serif;
+    font-size: 1rem;
+    padding: 14px 20px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+  #text-input:focus { border-color: rgba(100,100,255,0.5); }
+  #text-input::placeholder { color: rgba(255,255,255,0.2); }
+
+  /* Flip card (reveal) */
+  #reveal-btn {
+    background: rgba(99,102,241,0.15);
+    border: 1px solid rgba(99,102,241,0.3);
+    border-radius: 10px;
+    color: #a78bfa;
+    font-family: 'Georgia', serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.08em;
+    padding: 14px 20px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  #reveal-btn:hover { background: rgba(99,102,241,0.25); }
+
+  #answer-reveal {
+    background: rgba(255,255,255,0.04);
+    border-left: 3px solid #6366f1;
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.85);
+    display: none;
+  }
+  #answer-reveal.visible { display: block; }
+  #answer-reveal strong { color: #a78bfa; }
+
+  /* Self-grade buttons */
+  #grade-btns {
+    display: none;
+    gap: 12px;
+  }
+  #grade-btns.visible { display: flex; }
+  .grade-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    font-family: 'Georgia', serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    transition: opacity 0.2s;
+  }
+  .grade-btn:hover { opacity: 0.85; }
+  #grade-yes { background: rgba(74,222,128,0.18); border: 1px solid #4ade80; color: #4ade80; }
+  #grade-no { background: rgba(248,113,113,0.15); border: 1px solid #f87171; color: #f87171; }
+
+  /* Feedback */
+  #feedback {
+    font-size: 0.85rem;
+    min-height: 20px;
+    color: rgba(255,255,255,0.4);
+    font-style: italic;
+  }
+  #feedback.correct { color: #4ade80; }
+  #feedback.wrong { color: #f87171; }
+
+  /* NEXT BUTTON */
+  #next-btn {
+    display: none;
+    margin-top: 8px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    color: rgba(255,255,255,0.6);
+    font-family: 'Georgia', serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 12px 24px;
+    cursor: pointer;
+    align-self: flex-end;
+    transition: background 0.2s, color 0.2s;
+  }
+  #next-btn:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9); }
+  #next-btn.visible { display: block; }
+
+  /* RESULTS SCREEN */
+  #results {
+    display: none;
+    width: 100%;
+    max-width: 640px;
+    text-align: center;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+  }
+  #results.visible { display: flex; }
+  #results h2 { font-size: 1.8rem; font-weight: 300; letter-spacing: 0.1em; }
+  #results .big-score { font-size: 4rem; font-weight: 300; }
+  #results p { color: rgba(255,255,255,0.45); line-height: 1.8; font-size: 0.95rem; max-width: 460px; }
+  #restart-btn {
+    background: rgba(99,102,241,0.15);
+    border: 1px solid rgba(99,102,241,0.3);
+    border-radius: 10px;
+    color: #a78bfa;
+    font-family: 'Georgia', serif;
+    font-size: 0.9rem;
+    padding: 14px 32px;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: background 0.2s;
+  }
+  #restart-btn:hover { background: rgba(99,102,241,0.28); }
+
+  /* MODE SELECTOR */
+  #mode-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .mode-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    color: rgba(255,255,255,0.4);
+    font-family: 'Georgia', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    padding: 6px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .mode-btn.active {
+    background: rgba(99,102,241,0.2);
+    border-color: rgba(99,102,241,0.5);
+    color: #a78bfa;
+  }
+</style>
+</head>
+<body>
+
+<h1>Common Ports</h1>
+<div id="subtitle">CompTIA A+ Core 1 · Section 2.1 · Active Recall</div>
+
+<div id="scorebar">
+  <div class="score-item">
+    <div class="score-num" id="correct-num">0</div>
+    <div class="score-label">Correct</div>
+  </div>
+  <div class="score-item">
+    <div class="score-num" id="wrong-num">0</div>
+    <div class="score-label">Wrong</div>
+  </div>
+  <div class="score-item">
+    <div class="score-num" id="remain-num">—</div>
+    <div class="score-label">Left</div>
+  </div>
+</div>
+
+<div id="progress-bar"><div id="progress-fill"></div></div>
+
+<div id="mode-bar">
+  <button class="mode-btn active" onclick="setMode('all')">All Questions</button>
+  <button class="mode-btn" onclick="setMode('ports')">Port → Protocol</button>
+  <button class="mode-btn" onclick="setMode('protocols')">Protocol → Port</button>
+  <button class="mode-btn" onclick="setMode('scenario')">Scenarios</button>
+</div>
+
+<div id="card">
+  <div id="question-type"></div>
+  <div id="question-text"></div>
+  <div id="answer-area"></div>
+  <div id="feedback"></div>
+  <button id="next-btn" onclick="nextQuestion()">Next →</button>
+</div>
+
+<div id="results">
+  <h2>Round Complete</h2>
+  <div class="big-score" id="final-score"></div>
+  <p id="result-msg"></p>
+  <button id="restart-btn" onclick="restart()">Practice Again</button>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════
+   QUESTION BANK
+════════════════════════════════════════════════════════ */
+const allQuestions = [
+
+  // PORT → PROTOCOL
+  { type: 'port', q: 'What protocol uses <strong>TCP ports 20 and 21</strong>?', answer: 'FTP (File Transfer Protocol)', choices: ['FTP (File Transfer Protocol)', 'SSH', 'SMTP', 'SFTP'] },
+  { type: 'port', q: 'What is <strong>TCP port 20</strong> specifically used for in FTP?', answer: 'Active data transfer', choices: ['Active data transfer', 'Admin/control commands', 'Encrypted file transfer', 'Session authentication'] },
+  { type: 'port', q: 'What is <strong>TCP port 21</strong> specifically used for in FTP?', answer: 'Admin/control port', choices: ['Admin/control port', 'Active data transfer', 'Passive data transfer', 'Encrypted file transfer'] },
+  { type: 'port', q: 'What protocol uses <strong>TCP port 22</strong>?', answer: 'SSH (Secure Shell)', choices: ['SSH (Secure Shell)', 'Telnet', 'FTP', 'RDP'] },
+  { type: 'port', q: 'What protocol uses <strong>TCP port 23</strong>?', answer: 'Telnet', choices: ['Telnet', 'SSH', 'FTP', 'SMTP'] },
+  { type: 'port', q: 'What protocol uses <strong>TCP port 25</strong>?', answer: 'SMTP (Simple Mail Transfer Protocol)', choices: ['SMTP (Simple Mail Transfer Protocol)', 'IMAP', 'POP3', 'DNS'] },
+  { type: 'port', q: 'What protocol uses <strong>UDP port 53</strong>?', answer: 'DNS (Domain Name System)', choices: ['DNS (Domain Name System)', 'DHCP', 'LDAP', 'SNMP'] },
+  { type: 'port', q: 'What protocol uses <strong>UDP ports 67 and 68</strong>?', answer: 'DHCP (Dynamic Host Configuration Protocol)', choices: ['DHCP (Dynamic Host Configuration Protocol)', 'DNS', 'TFTP', 'SNMP'] },
+  { type: 'port', q: 'What protocol uses <strong>TCP port 80</strong>?', answer: 'HTTP (Hypertext Transfer Protocol)', choices: ['HTTP (Hypertext Transfer Protocol)', 'HTTPS', 'FTP', 'SMTP'] },
+  { type: 'port', q: 'What protocol uses <strong>TCP port 110</strong>?', answer: 'POP3 (Post Office Protocol v3)', choices: ['POP3 (Post Office Protocol v3)', 'IMAP', 'SMTP', 'LDAP'] },
+  { type: 'port', q: 'What protocol uses <strong>TCP port 143</strong>?', answer: 'IMAP (Internet Message Access Protocol v4)', choices: ['IMAP (Internet Message Access Protocol v4)', 'POP3', 'SMTP', 'RDP'] },
+  { type: 'port', q: 'What protocol uses <strong>TCP port 389</strong>?', answer: 'LDAP (Lightweight Directory Access Protocol)', choices: ['LDAP (Lightweight Directory Access Protocol)', 'LDAPS', 'SMB', 'RDP'] },
+  { type: 'port', q: 'What protocol uses <strong>TCP port 443</strong>?', answer: 'HTTPS (HTTP Secure)', choices: ['HTTPS (HTTP Secure)', 'HTTP', 'LDAPS', 'SMTPS'] },
+  { type: 'port', q: 'What protocol uses <strong>TCP port 445</strong>?', answer: 'SMB direct (NetBIOS-less communication)', choices: ['SMB direct (NetBIOS-less communication)', 'NetBIOS session service', 'LDAP', 'FTP'] },
+  { type: 'port', q: 'What protocol uses <strong>TCP port 636</strong>?', answer: 'LDAPS (LDAP Secure)', choices: ['LDAPS (LDAP Secure)', 'LDAP', 'HTTPS', 'SMTPS'] },
+  { type: 'port', q: 'What protocol uses <strong>TCP port 3389</strong>?', answer: 'RDP (Remote Desktop Protocol)', choices: ['RDP (Remote Desktop Protocol)', 'SSH', 'Telnet', 'VNC'] },
+  { type: 'port', q: 'What is <strong>UDP port 137</strong> used for?', answer: 'NetBIOS Name Service (nbname)', choices: ['NetBIOS Name Service (nbname)', 'NetBIOS Session Service', 'SMB direct', 'DHCP client'] },
+  { type: 'port', q: 'What is <strong>TCP port 139</strong> used for?', answer: 'NetBIOS Session Service (nbsession)', choices: ['NetBIOS Session Service (nbsession)', 'NetBIOS Name Service', 'SMB direct', 'LDAP'] },
+
+  // PROTOCOL → PORT
+  { type: 'protocol', q: 'What port does <strong>FTP</strong> use for data transfer?', answer: 'TCP 20', choices: ['TCP 20', 'TCP 21', 'TCP 22', 'UDP 20'] },
+  { type: 'protocol', q: 'What port does <strong>FTP</strong> use for control/admin?', answer: 'TCP 21', choices: ['TCP 21', 'TCP 20', 'UDP 21', 'TCP 23'] },
+  { type: 'protocol', q: 'What port does <strong>SSH</strong> use?', answer: 'TCP 22', choices: ['TCP 22', 'TCP 23', 'TCP 21', 'UDP 22'] },
+  { type: 'protocol', q: 'What port does <strong>Telnet</strong> use?', answer: 'TCP 23', choices: ['TCP 23', 'TCP 22', 'TCP 25', 'UDP 23'] },
+  { type: 'protocol', q: 'What port does <strong>SMTP</strong> use?', answer: 'TCP 25', choices: ['TCP 25', 'TCP 110', 'TCP 143', 'UDP 25'] },
+  { type: 'protocol', q: 'What port does <strong>DNS</strong> use?', answer: 'UDP 53', choices: ['UDP 53', 'TCP 53', 'UDP 67', 'TCP 53'] },
+  { type: 'protocol', q: 'What ports does <strong>DHCP</strong> use?', answer: 'UDP 67 and 68', choices: ['UDP 67 and 68', 'UDP 53 and 54', 'TCP 67 and 68', 'UDP 137 and 138'] },
+  { type: 'protocol', q: 'What port does <strong>HTTP</strong> use?', answer: 'TCP 80', choices: ['TCP 80', 'TCP 443', 'TCP 8080', 'UDP 80'] },
+  { type: 'protocol', q: 'What port does <strong>HTTPS</strong> use?', answer: 'TCP 443', choices: ['TCP 443', 'TCP 80', 'TCP 8443', 'UDP 443'] },
+  { type: 'protocol', q: 'What port does <strong>POP3</strong> use?', answer: 'TCP 110', choices: ['TCP 110', 'TCP 143', 'TCP 25', 'UDP 110'] },
+  { type: 'protocol', q: 'What port does <strong>IMAP</strong> use?', answer: 'TCP 143', choices: ['TCP 143', 'TCP 110', 'TCP 993', 'UDP 143'] },
+  { type: 'protocol', q: 'What port does <strong>LDAP</strong> use?', answer: 'TCP 389', choices: ['TCP 389', 'TCP 636', 'TCP 445', 'UDP 389'] },
+  { type: 'protocol', q: 'What port does <strong>LDAPS</strong> use?', answer: 'TCP 636', choices: ['TCP 636', 'TCP 389', 'TCP 443', 'UDP 636'] },
+  { type: 'protocol', q: 'What port does <strong>SMB direct</strong> (modern Windows) use?', answer: 'TCP 445', choices: ['TCP 445', 'TCP 139', 'UDP 137', 'TCP 389'] },
+  { type: 'protocol', q: 'What port does <strong>RDP</strong> use?', answer: 'TCP 3389', choices: ['TCP 3389', 'TCP 22', 'TCP 23', 'TCP 5900'] },
+
+  // SCENARIO
+  { type: 'scenario', q: 'You need to remotely manage a Linux server via command line with <strong>full encryption</strong>. Which protocol and port should you use?', answer: 'SSH on TCP port 22', choices: ['SSH on TCP port 22', 'Telnet on TCP port 23', 'RDP on TCP port 3389', 'FTP on TCP port 21'] },
+  { type: 'scenario', q: 'You\'re configuring a firewall to allow web browsing. Which port and protocol must be permitted?', answer: 'TCP 80 (HTTP) and TCP 443 (HTTPS)', choices: ['TCP 80 (HTTP) and TCP 443 (HTTPS)', 'TCP 21 (FTP) and TCP 22 (SSH)', 'UDP 53 (DNS) only', 'TCP 25 (SMTP) and TCP 110 (POP3)'] },
+  { type: 'scenario', q: 'A technician is setting up an email client. The user wants to <strong>access their inbox from both their phone and laptop</strong> and see the same messages on both. Which receiving protocol should be configured?', answer: 'IMAP (TCP 143) — syncs across multiple clients', choices: ['IMAP (TCP 143) — syncs across multiple clients', 'POP3 (TCP 110) — downloads and removes from server', 'SMTP (TCP 25) — used for sending only', 'LDAP (TCP 389) — not an email protocol'] },
+  { type: 'scenario', q: 'A device joins the network and automatically receives an IP address, subnet mask, default gateway, and DNS server. What protocol is responsible?', answer: 'DHCP (UDP ports 67 & 68)', choices: ['DHCP (UDP ports 67 & 68)', 'DNS (UDP 53)', 'ARP', 'LDAP (TCP 389)'] },
+  { type: 'scenario', q: 'You want to <strong>view a coworker\'s desktop remotely</strong> on a Windows machine. Which protocol and port is used?', answer: 'RDP on TCP port 3389', choices: ['RDP on TCP port 3389', 'SSH on TCP port 22', 'Telnet on TCP port 23', 'VNC on TCP port 5900'] },
+  { type: 'scenario', q: 'A network admin needs to look up user account information stored in <strong>Active Directory</strong>. Which protocol is used?', answer: 'LDAP (TCP 389) or LDAPS (TCP 636)', choices: ['LDAP (TCP 389) or LDAPS (TCP 636)', 'SMB (TCP 445)', 'DNS (UDP 53)', 'DHCP (UDP 67/68)'] },
+  { type: 'scenario', q: 'You\'re setting up a <strong>shared folder and printer</strong> on a modern Windows network. Which port needs to be open?', answer: 'TCP 445 (SMB direct)', choices: ['TCP 445 (SMB direct)', 'TCP 139 (NetBIOS session)', 'UDP 137 (NetBIOS name)', 'TCP 80 (HTTP)'] },
+  { type: 'scenario', q: 'A user types "google.com" in their browser. Before any web traffic happens, which protocol is used — and on which port?', answer: 'DNS on UDP port 53 (to resolve the domain name)', choices: ['DNS on UDP port 53 (to resolve the domain name)', 'HTTP on TCP port 80 (to fetch the page)', 'DHCP on UDP port 67 (to get an IP)', 'HTTPS on TCP 443 (to encrypt the request)'] },
+  { type: 'scenario', q: '<strong>FTP is considered a security risk</strong> in most environments. Why?', answer: 'FTP is not encrypted — credentials and data are sent in clear text', choices: ['FTP is not encrypted — credentials and data are sent in clear text', 'FTP uses too many ports and creates firewall issues', 'FTP does not support authentication', 'FTP only works on UDP, which is unreliable'] },
+  { type: 'scenario', q: 'Telnet is functionally similar to SSH, but you should almost never use it. Why?', answer: 'Telnet sends all data including passwords in clear text with no encryption', choices: ['Telnet sends all data including passwords in clear text with no encryption', 'Telnet is slower than SSH', 'Telnet uses UDP which is unreliable', 'Telnet requires more authentication factors than SSH'] },
+
+  // FLIP CARDS (free recall)
+  { type: 'flip', q: 'Explain what <strong>DHCP</strong> does and why you might set up a DHCP reservation.', answer: 'DHCP automatically assigns IP addresses, subnet masks, default gateways, and DNS servers to devices when they connect. A DHCP reservation gives a specific device (like a printer or server) the same IP address every time, so it\'s always reachable at a known address.' },
+  { type: 'flip', q: 'What is <strong>LDAP</strong> and what is it most commonly used for in enterprise environments?', answer: 'LDAP (Lightweight Directory Access Protocol, TCP 389) communicates with directory databases that store info about users, devices, and resources on a network. The most common use is Microsoft Active Directory, where LDAP is used to look up user account data.' },
+  { type: 'flip', q: 'What is the difference between <strong>SMB via NetBIOS (TCP 139)</strong> and <strong>direct SMB (TCP 445)</strong>?', answer: 'Older Windows devices used NetBIOS over TCP/IP, requiring extra protocols and ports (UDP 137 for name resolution, TCP 139 for sessions). Modern Windows uses direct SMB communication over TCP 445 between IP addresses — no NetBIOS layer needed.' },
+  { type: 'flip', q: 'Why would a firewall admin care about port numbers?', answer: 'Firewalls use TCP and UDP port numbers as criteria to allow or block traffic. Knowing which ports correspond to which services lets an admin permit legitimate traffic (e.g., TCP 443 for HTTPS) while blocking unwanted or dangerous services.' },
+];
+
+/* ════════════════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════════════════ */
+let mode = 'all';
+let deck = [];
+let current = 0;
+let correct = 0;
+let wrong = 0;
+let answered = false;
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  restart();
+}
+
+function buildDeck() {
+  let pool = allQuestions;
+  if (mode === 'ports') pool = allQuestions.filter(q => q.type === 'port');
+  if (mode === 'protocols') pool = allQuestions.filter(q => q.type === 'protocol');
+  if (mode === 'scenario') pool = allQuestions.filter(q => q.type === 'scenario' || q.type === 'flip');
+  // shuffle
+  deck = [...pool].sort(() => Math.random() - 0.5);
+}
+
+function restart() {
+  correct = 0; wrong = 0; current = 0; answered = false;
+  buildDeck();
+  document.getElementById('results').classList.remove('visible');
+  document.getElementById('card').style.display = 'flex';
+  document.getElementById('scorebar').style.display = 'flex';
+  document.getElementById('progress-bar').style.display = 'block';
+  updateScore();
+  showQuestion();
+}
+
+function updateScore() {
+  document.getElementById('correct-num').textContent = correct;
+  document.getElementById('wrong-num').textContent = wrong;
+  const left = deck.length - current;
+  document.getElementById('remain-num').textContent = left > 0 ? left : 0;
+  const pct = deck.length > 0 ? (current / deck.length) * 100 : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+function showQuestion() {
+  if (current >= deck.length) { showResults(); return; }
+  answered = false;
+  const q = deck[current];
+
+  const typeLabels = { port: 'Port → Protocol', protocol: 'Protocol → Port', scenario: 'Scenario', flip: 'Recall' };
+  document.getElementById('question-type').textContent = typeLabels[q.type] || '';
+  document.getElementById('question-text').innerHTML = q.q;
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('feedback').className = '';
+
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.classList.remove('visible');
+
+  const area = document.getElementById('answer-area');
+  area.innerHTML = '';
+
+  if (q.type === 'flip') {
+    // Reveal card
+    const revealBtn = document.createElement('button');
+    revealBtn.id = 'reveal-btn';
+    revealBtn.textContent = 'Show Answer';
+    revealBtn.onclick = () => {
+      reveal.classList.add('visible');
+      revealBtn.style.display = 'none';
+      gradeDiv.classList.add('visible');
+    };
+    area.appendChild(revealBtn);
+
+    const reveal = document.createElement('div');
+    reveal.id = 'answer-reveal';
+    reveal.innerHTML = q.answer;
+    area.appendChild(reveal);
+
+    const gradeDiv = document.createElement('div');
+    gradeDiv.id = 'grade-btns';
+    gradeDiv.innerHTML = `
+      <button class="grade-btn" id="grade-yes" onclick="gradeFlip(true)">✓ Got it</button>
+      <button class="grade-btn" id="grade-no" onclick="gradeFlip(false)">✗ Missed it</button>
+    `;
+    area.appendChild(gradeDiv);
+
+  } else {
+    // Multiple choice
+    const shuffled = [...q.choices].sort(() => Math.random() - 0.5);
+    shuffled.forEach(choice => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.textContent = choice;
+      btn.onclick = () => checkAnswer(choice, q.answer, btn, shuffled);
+      area.appendChild(btn);
+    });
+  }
+}
+
+function checkAnswer(chosen, correct_ans, btn, all) {
+  if (answered) return;
+  answered = true;
+  const btns = document.querySelectorAll('.choice-btn');
+  btns.forEach(b => {
+    b.disabled = true;
+    if (b.textContent === correct_ans) b.classList.add('reveal');
+  });
+
+  const fb = document.getElementById('feedback');
+  if (chosen === correct_ans) {
+    btn.classList.remove('reveal');
+    btn.classList.add('correct');
+    correct++;
+    fb.textContent = 'Correct!';
+    fb.className = 'correct';
+  } else {
+    btn.classList.add('wrong');
+    wrong++;
+    fb.textContent = 'Not quite — see the highlighted answer.';
+    fb.className = 'wrong';
+  }
+  updateScore();
+  document.getElementById('next-btn').classList.add('visible');
+}
+
+function gradeFlip(gotIt) {
+  if (answered) return;
+  answered = true;
+  const fb = document.getElementById('feedback');
+  if (gotIt) {
+    correct++;
+    fb.textContent = 'Marked correct.';
+    fb.className = 'correct';
+  } else {
+    wrong++;
+    fb.textContent = 'Marked for review.';
+    fb.className = 'wrong';
+  }
+  document.querySelectorAll('.grade-btn').forEach(b => b.disabled = true);
+  updateScore();
+  document.getElementById('next-btn').classList.add('visible');
+}
+
+function nextQuestion() {
+  current++;
+  updateScore();
+  document.getElementById('card').style.opacity = '0';
+  setTimeout(() => {
+    document.getElementById('card').style.opacity = '1';
+    showQuestion();
+  }, 200);
+}
+
+function showResults() {
+  document.getElementById('card').style.display = 'none';
+  document.getElementById('scorebar').style.display = 'none';
+  document.getElementById('progress-bar').style.display = 'none';
+
+  const total = correct + wrong;
+  const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+  const results = document.getElementById('results');
+  results.classList.add('visible');
+  document.getElementById('final-score').textContent = pct + '%';
+  document.getElementById('final-score').style.color = pct >= 80 ? '#4ade80' : pct >= 60 ? '#facc15' : '#f87171';
+
+  let msg = '';
+  if (pct >= 90) msg = "Excellent — you know this material cold. You're ready for exam-level questions on these ports.";
+  else if (pct >= 75) msg = "Solid. A few gaps to close — run through it again and focus on the ones you missed.";
+  else if (pct >= 60) msg = "Getting there. The port numbers are sticking but some protocol details need another pass.";
+  else msg = "More repetition needed — that's okay, this is a lot of numbers. Run it again and they'll start to stick.";
+  document.getElementById('result-msg').textContent = msg;
+}
+
+// init
+buildDeck();
+updateScore();
+showQuestion();
+</script>
+</body>
+</html>
