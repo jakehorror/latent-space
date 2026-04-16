@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wireless Network Technologies — Active Recall</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0a0a0f;
+  color: #e0e0f0;
+  font-family: 'Georgia', serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 32px 16px 64px;
+}
+h1 {
+  font-size: 1rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+  margin-bottom: 8px;
+  text-align: center;
+}
+#subtitle {
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  color: rgba(255,255,255,0.18);
+  text-transform: uppercase;
+  margin-bottom: 36px;
+  text-align: center;
+}
+#scorebar {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 28px;
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+}
+.score-item { text-align: center; }
+.score-num { font-size: 1.6rem; font-weight: 300; }
+.score-label { color: rgba(255,255,255,0.3); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; }
+#correct-num { color: #4ade80; }
+#wrong-num { color: #f87171; }
+#remain-num { color: rgba(255,255,255,0.5); }
+#progress-bar {
+  width: 100%;
+  max-width: 640px;
+  height: 3px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 2px;
+  margin-bottom: 32px;
+  overflow: hidden;
+}
+#progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+  width: 0%;
+}
+#card {
+  width: 100%;
+  max-width: 640px;
+  min-height: 260px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 40px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  transition: opacity 0.3s;
+}
+#question-type {
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(150,150,255,0.6);
+}
+#question-text {
+  font-size: clamp(1.1rem, 3vw, 1.4rem);
+  line-height: 1.6;
+  color: rgba(255,255,255,0.9);
+}
+#question-text strong { color: #a78bfa; }
+#answer-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.choice-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  color: rgba(255,255,255,0.8);
+  font-family: 'Georgia', serif;
+  font-size: 0.9rem;
+  padding: 14px 20px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  line-height: 1.5;
+}
+.choice-btn:hover:not(:disabled) {
+  background: rgba(100,100,255,0.12);
+  border-color: rgba(100,100,255,0.3);
+}
+.choice-btn.correct {
+  background: rgba(74,222,128,0.12);
+  border-color: #4ade80;
+  color: #4ade80;
+}
+.choice-btn.wrong {
+  background: rgba(248,113,113,0.1);
+  border-color: #f87171;
+  color: #f87171;
+}
+.choice-btn.reveal {
+  background: rgba(74,222,128,0.08);
+  border-color: rgba(74,222,128,0.4);
+  color: rgba(74,222,128,0.8);
+}
+.choice-btn:disabled { cursor: default; }
+#reveal-btn {
+  background: rgba(99,102,241,0.15);
+  border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 10px;
+  color: #a78bfa;
+  font-family: 'Georgia', serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  padding: 14px 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#reveal-btn:hover { background: rgba(99,102,241,0.25); }
+#answer-reveal {
+  background: rgba(255,255,255,0.04);
+  border-left: 3px solid #6366f1;
+  border-radius: 0 8px 8px 0;
+  padding: 16px 20px;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: rgba(255,255,255,0.85);
+  display: none;
+}
+#answer-reveal.visible { display: block; }
+#grade-btns {
+  display: none;
+  gap: 12px;
+}
+#grade-btns.visible { display: flex; }
+.grade-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  font-family: 'Georgia', serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  transition: opacity 0.2s;
+}
+.grade-btn:hover { opacity: 0.85; }
+#grade-yes { background: rgba(74,222,128,0.18); border: 1px solid #4ade80; color: #4ade80; }
+#grade-no { background: rgba(248,113,113,0.15); border: 1px solid #f87171; color: #f87171; }
+#feedback {
+  font-size: 0.85rem;
+  min-height: 20px;
+  color: rgba(255,255,255,0.4);
+  font-style: italic;
+}
+#feedback.correct { color: #4ade80; }
+#feedback.wrong { color: #f87171; }
+#next-btn {
+  display: none;
+  margin-top: 8px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  color: rgba(255,255,255,0.6);
+  font-family: 'Georgia', serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 12px 24px;
+  cursor: pointer;
+  align-self: flex-end;
+  transition: background 0.2s, color 0.2s;
+}
+#next-btn:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9); }
+#next-btn.visible { display: block; }
+#results {
+  display: none;
+  width: 100%;
+  max-width: 640px;
+  text-align: center;
+  flex-direction: column;
+  gap: 24px;
+  align-items: center;
+}
+#results.visible { display: flex; }
+#results h2 { font-size: 1.8rem; font-weight: 300; letter-spacing: 0.1em; }
+#results .big-score { font-size: 4rem; font-weight: 300; }
+#results p { color: rgba(255,255,255,0.45); line-height: 1.8; font-size: 0.95rem; max-width: 460px; }
+#restart-btn {
+  background: rgba(99,102,241,0.15);
+  border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 10px;
+  color: #a78bfa;
+  font-family: 'Georgia', serif;
+  font-size: 0.9rem;
+  padding: 14px 32px;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: background 0.2s;
+}
+#restart-btn:hover { background: rgba(99,102,241,0.28); }
+#mode-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.mode-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  color: rgba(255,255,255,0.4);
+  font-family: 'Georgia', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  padding: 6px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.mode-btn.active {
+  background: rgba(99,102,241,0.2);
+  border-color: rgba(99,102,241,0.5);
+  color: #a78bfa;
+}
+</style>
+</head>
+<body>
+
+<h1>Wireless Network Technologies</h1>
+<div id="subtitle">CompTIA A+ Core 1 · Section 2.2 · Active Recall</div>
+
+<div id="scorebar">
+  <div class="score-item">
+    <div class="score-num" id="correct-num">0</div>
+    <div class="score-label">Correct</div>
+  </div>
+  <div class="score-item">
+    <div class="score-num" id="wrong-num">0</div>
+    <div class="score-label">Wrong</div>
+  </div>
+  <div class="score-item">
+    <div class="score-num" id="remain-num">—</div>
+    <div class="score-label">Left</div>
+  </div>
+</div>
+
+<div id="progress-bar"><div id="progress-fill"></div></div>
+
+<div id="mode-bar">
+  <button class="mode-btn active" onclick="setMode('all')">All Questions</button>
+  <button class="mode-btn" onclick="setMode('ieee')">IEEE / Wi-Fi</button>
+  <button class="mode-btn" onclick="setMode('short')">Short-range</button>
+  <button class="mode-btn" onclick="setMode('scenario')">Scenarios</button>
+</div>
+
+<div id="card">
+  <div id="question-type"></div>
+  <div id="question-text"></div>
+  <div id="answer-area"></div>
+  <div id="feedback"></div>
+  <button id="next-btn" onclick="nextQuestion()">Next →</button>
+</div>
+
+<div id="results">
+  <h2>Round Complete</h2>
+  <div class="big-score" id="final-score"></div>
+  <p id="result-msg"></p>
+  <button id="restart-btn" onclick="restart()">Practice Again</button>
+</div>
+
+<script>
+const allQuestions = [
+  // IEEE / Wi-Fi Standards
+  { cat: 'ieee', q: 'What does <strong>IEEE</strong> stand for?', answer: 'Institute of Electrical and Electronics Engineers', choices: ['Institute of Electrical and Electronics Engineers','International Engineering and Electronics Exchange','Integrated Electronics and Engineering Enterprise','Institute of Electrical and Electronics Enterprises'] },
+  { cat: 'ieee', q: '<strong>802.11ac</strong> is marketed as which Wi-Fi generation?', answer: 'Wi-Fi 5', choices: ['Wi-Fi 5','Wi-Fi 4','Wi-Fi 6','Wi-Fi 7'] },
+  { cat: 'ieee', q: '<strong>802.11ax</strong> covers which Wi-Fi generation(s)?', answer: 'Wi-Fi 6 and Wi-Fi 6E', choices: ['Wi-Fi 6 and Wi-Fi 6E','Wi-Fi 5','Wi-Fi 7','Wi-Fi 4 and Wi-Fi 5'] },
+  { cat: 'ieee', q: '<strong>802.11be</strong> corresponds to which Wi-Fi generation?', answer: 'Wi-Fi 7', choices: ['Wi-Fi 7','Wi-Fi 6E','Wi-Fi 6','Wi-Fi 8'] },
+  { cat: 'ieee', q: 'Which three frequency bands does 802.11 technology operate on?', answer: '2.4 GHz, 5 GHz, and 6 GHz', choices: ['2.4 GHz, 5 GHz, and 6 GHz','1.8 GHz, 2.4 GHz, and 5 GHz','5 GHz and 6 GHz only','2.4 GHz and 5 GHz only'] },
+  { cat: 'ieee', q: 'What is a <strong>channel</strong> in the context of 802.11 wireless?', answer: 'A group of frequencies numbered by the IEEE for wireless communication', choices: ['A group of frequencies numbered by the IEEE for wireless communication','A physical wire segment connecting access points','A security protocol for WPA authentication','A reserved port for management traffic'] },
+  { cat: 'ieee', q: 'Why is using <strong>non-overlapping channels</strong> optimal in wireless networking?', answer: 'Overlapping channels cause interference between nearby access points', choices: ['Overlapping channels cause interference between nearby access points','Non-overlapping channels are faster by default','Regulations require non-overlapping channel usage','Overlapping channels reduce encryption strength'] },
+  { cat: 'ieee', q: 'What does <strong>bandwidth</strong> refer to in 802.11 wireless?', answer: 'The amount of frequency spectrum in use (e.g. 20, 40, 80, 160 MHz)', choices: ['The amount of frequency spectrum in use (e.g. 20, 40, 80, 160 MHz)','The maximum number of connected devices','The physical cable speed in Mbps','The encryption key length in bits'] },
+  // Short-range Technologies
+  { cat: 'short', q: 'What frequency band does <strong>Bluetooth</strong> operate on?', answer: '2.4 GHz (unlicensed ISM band)', choices: ['2.4 GHz (unlicensed ISM band)','5 GHz','900 MHz','60 GHz'] },
+  { cat: 'short', q: 'What does <strong>ISM band</strong> stand for?', answer: 'Industrial, Scientific and Medical', choices: ['Industrial, Scientific and Medical','International Signals Management','Integrated Spectrum Management','Internal Service Module'] },
+  { cat: 'short', q: 'What is the approximate range of most <strong>consumer Bluetooth</strong> devices?', answer: 'About 10 meters', choices: ['About 10 meters','About 100 meters','About 1 meter','About 50 meters'] },
+  { cat: 'short', q: 'What type of network does Bluetooth form — LAN, WAN, or PAN?', answer: 'PAN — Personal Area Network', choices: ['PAN — Personal Area Network','LAN — Local Area Network','WAN — Wide Area Network','MAN — Metropolitan Area Network'] },
+  { cat: 'short', q: 'What does <strong>RFID</strong> stand for?', answer: 'Radio-Frequency Identification', choices: ['Radio-Frequency Identification','Remote Frequency Internet Device','Radio File Identification','Rapid Frequency Input Data'] },
+  { cat: 'short', q: 'How does a passive RFID tag receive power?', answer: 'Radio energy transmitted from a reader powers the tag', choices: ['Radio energy transmitted from a reader powers the tag','It has a built-in battery','It draws power from NFC','It uses ambient Wi-Fi energy'] },
+  { cat: 'short', q: 'Name three real-world uses of <strong>RFID</strong>.', answer: 'Access badges, inventory/assembly tracking, pet identification', choices: ['Access badges, inventory/assembly tracking, pet identification','GPS navigation, Bluetooth pairing, NFC payments','Wi-Fi authentication, cellular roaming, DNS lookup','Biometric scanning, VPN tunneling, DHCP assignment'] },
+  { cat: 'short', q: 'What does <strong>NFC</strong> stand for?', answer: 'Near Field Communication', choices: ['Near Field Communication','Network Frequency Control','Narrowband Frequency Channel','Near-Field Connection'] },
+  { cat: 'short', q: 'How does <strong>NFC</strong> build on RFID?', answer: 'RFID is mostly one-way; NFC adds two-way communication', choices: ['RFID is mostly one-way; NFC adds two-way communication','NFC uses higher frequencies than RFID','NFC replaces RFID entirely with Wi-Fi','RFID is two-way; NFC adds encryption'] },
+  { cat: 'short', q: 'What is one way <strong>NFC is used to assist Bluetooth</strong>?', answer: 'NFC helps bootstrap Bluetooth pairing', choices: ['NFC helps bootstrap Bluetooth pairing','NFC replaces Bluetooth for audio streaming','NFC extends Bluetooth range','NFC encrypts Bluetooth traffic'] },
+  // Scenarios
+  { cat: 'scenario', q: 'You need to add a wireless keyboard and mouse to a laptop. No USB dongle is available. Which short-range technology is the best fit?', answer: 'Bluetooth — designed for peripherals at short range', choices: ['Bluetooth — designed for peripherals at short range','NFC — used for payments and pairing assist','RFID — passive tags, not suitable for input devices','802.11 Wi-Fi — not designed for peripheral connections'] },
+  { cat: 'scenario', q: 'A retail store wants to track inventory automatically as items move through a warehouse. Which technology is ideal?', answer: 'RFID — tags on items transmit IDs to readers automatically', choices: ['RFID — tags on items transmit IDs to readers automatically','Bluetooth — range and setup too cumbersome for inventory','NFC — too short range for warehouse tracking','802.11 Wi-Fi — requires items to have active radios'] },
+  { cat: 'scenario', q: 'You tap your phone at a payment terminal to pay. Which technology is being used?', answer: 'NFC — used in mobile payment systems', choices: ['NFC — used in mobile payment systems','Bluetooth — connection requires pairing','RFID — one-way passive tag, not for payments','802.11 Wi-Fi — sot used for tap-to-pay'] },
+  { cat: 'scenario', q: 'An office has several Wi-Fi access points causing interference. The tech configures each AP on a different channel. Why?', answer: 'To use non-overlapping channels and eliminate interference between APs', choices: ['To use non-overlapping channels and eliminate interference between APs','To increase the bandwidth of each individual AP','To separate 2.4 GHz and 5 GHz clients','To assign each AP a unique SSID'] },
+  { cat: 'scenario', q: 'A venue installs access badges that unlock doors when held near a reader, with no battery in the badge. What technology is this?', answer: 'Passive RFID — reader transmits RF energy to power the tag', choices: ['Passive RFID — reader transmits RF energy to power the tag','NFC — requires active device on both ends','Bluetooth — requires pairing and battery','Wi-Fi — sot used for access control badges'] },
+  // Flip / Recall
+  { cat: 'scenario', type: 'flip', q: 'Explain the difference between <strong>2.4 GHz and 5 GHz</strong> Wi-Fi. When would you use each?', answer: '2.4 GHz travels farther and penetrates walls better but is more crowded (shared with Bluetooth, microwaves) and slower. 5 GHz is faster and less congested but has shorter range. Use 2.4 GHz for range-sensitive or low-bandwidth tasks; use 5 GHz for performance-sensitive tasks nearby.' },
+  { cat: 'scenario', type: 'flip', q: 'What is the relationship between <strong>Bluetooth and 802.11 Wi-Fi</strong> in terms of frequency, and why can that cause issues?', answer: 'Both use the 2.4 GHz ISM band. Because they share the same unlicensed frequency range, they can interfere with each other — and with other devices like microwaves. This is one reason 5 GHz Wi-Fi was developed.' },
+];
+
+let mode = 'all';
+let deck = [];
+let current = 0;
+let correct = 0;
+let wrong = 0;
+let answered = false;
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  restart();
+}
+
+function buildDeck() {
+  let pool = allQuestions;
+  if (mode === 'ieee') pool = allQuestions.filter(q => q.cat === 'ieee');
+  if (mode === 'short') pool = allQuestions.filter(q => q.cat === 'short');
+  if (mode === 'scenario') pool = allQuestions.filter(q => q.cat === 'scenario');
+  deck = [...pool].sort(() => Math.random() - 0.5);
+}
+
+function restart() {
+  correct = 0; wrong = 0; current = 0; answered = false;
+  buildDeck();
+  document.getElementById('results').classList.remove('visible');
+  document.getElementById('card').style.display = 'flex';
+  document.getElementById('scorebar').style.display = 'flex';
+  document.getElementById('progress-bar').style.display = 'block';
+  updateScore();
+  showQuestion();
+}
+
+function updateScore() {
+  document.getElementById('correct-num').textContent = correct;
+  document.getElementById('wrong-num').textContent = wrong;
+  const left = deck.length - current;
+  document.getElementById('remain-num').textContent = left > 0 ? left : 0;
+  const pct = deck.length > 0 ? (current / deck.length) * 100 : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+function showQuestion() {
+  if (current >= deck.length) { showResults(); return; }
+  answered = false;
+  const q = deck[current];
+  const typeLabels = { ieee: 'IEEE / Wi-Fi Standards', short: 'Short-range Tech', scenario: 'Scenario', flip: 'Recall' };
+  document.getElementById('question-type').textContent = q.type === 'flip' ? typeLabels.flip : typeLabels[q.cat] || '';
+  document.getElementById('question-text').innerHTML = q.q;
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('feedback').className = '';
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.classList.remove('visible');
+  const area = document.getElementById('answer-area');
+  area.innerHTML = '';
+
+  if (q.type === 'flip') {
+    const revealBtn = document.createElement('button');
+    revealBtn.id = 'reveal-btn';
+    revealBtn.textContent = 'Show Answer';
+    revealBtn.onclick = () => {
+      reveal.classList.add('visible');
+      revealBtn.style.display = 'none';
+      gradeDiv.classList.add('visible');
+    };
+    area.appendChild(revealBtn);
+    const reveal = document.createElement('div');
+    reveal.id = 'answer-reveal';
+    reveal.textContent = q.answer;
+    area.appendChild(reveal);
+    const gradeDiv = document.createElement('div');
+    gradeDiv.id = 'grade-btns';
+    gradeDiv.innerHTML = `<button class="grade-btn" id="grade-yes" onclick="gradeFlip(true)">✓ Got it</button><button class="grade-btn" id="grade-no" onclick="gradeFlip(false)">✗ Missed it</button>`;
+    area.appendChild(gradeDiv);
+  } else {
+    const shuffled = [...q.choices].sort(() => Math.random() - 0.5);
+    shuffled.forEach(choice => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.textContent = choice;
+      btn.onclick = () => checkAnswer(choice, q.answer, btn);
+      area.appendChild(btn);
+    });
+  }
+}
+
+function checkAnswer(chosen, correct_ans, btn) {
+  if (answered) return;
+  answered = true;
+  const btns = document.querySelectorAll('.choice-btn');
+  btns.forEach(b => {
+    b.disabled = true;
+    if (b.textContent === correct_ans) b.classList.add('reveal');
+  });
+  const fb = document.getElementById('feedback');
+  if (chosen === correct_ans) {
+    btn.classList.remove('reveal');
+    btn.classList.add('correct');
+    correct++;
+    fb.textContent = 'Correct!';
+    fb.className = 'correct';
+  } else {
+    btn.classList.add('wrong');
+    wrong++;
+    fb.textContent = 'Not quite — see the highlighted answer.';
+    fb.className = 'wrong';
+  }
+  updateScore();
+  document.getElementById('next-btn').classList.add('visible');
+}
+
+function gradeFlip(gotIt) {
+  if (answered) return;
+  answered = true;
+  const fb = document.getElementById('feedback');
+  if (gotIt) {
+    correct++;
+    fb.textContent = 'Marked correct.';
+    fb.className = 'correct';
+  } else {
+    wrong++;
+    fb.textContent = 'Marked for review.';
+    fb.className = 'wrong';
+  }
+  document.querySelectorAll('.grade-btn').forEach(b => b.disabled = true);
+  updateScore();
+  document.getElementById('next-btn').classList.add('visible');
+}
+
+function nextQuestion() {
+  current++;
+  updateScore();
+  document.getElementById('card').style.opacity = '0';
+  setTimeout(() => {
+    document.getElementById('card').style.opacity = '1';
+    showQuestion();
+  }, 200);
+}
+
+function showResults() {
+  document.getElementById('card').style.display = 'none';
+  document.getElementById('scorebar').style.display = 'none';
+  document.getElementById('progress-bar').style.display = 'none';
+  const total = correct + wrong;
+  const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+  const results = document.getElementById('results');
+  results.classList.add('visible');
+  document.getElementById('final-score').textContent = pct + '%';
+  document.getElementById('final-score').style.color = pct >= 80 ? '#4ade80' : pct >= 60 ? '#facc15' : '#f87171';
+  let msg = '';
+  if (pct >= 90) msg = "Excellent — you know this material cold. Ready for exam-level questions.";
+  else if (pct >= 75) msg = "Solid. A few gaps to close — run through it again and focus on the ones you missed.";
+  else if (pct >= 60) msg = "Getting there. Hit the short-range section again and you'll be in good shape.";
+  else msg = "More repetition needed — run it again and it'll start to stick.";
+  document.getElementById('result-msg').textContent = msg;
+}
+
+buildDeck();
+updateScore();
+showQuestion();
+</script>
+</body>
+</html>
