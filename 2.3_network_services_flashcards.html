@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Network Services — Active Recall</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0a0a0f;
+    color: #e0e0f0;
+    font-family: Georgia, serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 32px 16px 64px;
+  }
+  h1 {
+    font-size: 1rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  #subtitle {
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.18);
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    text-align: center;
+  }
+  #mode-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .mode-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    color: rgba(255,255,255,0.4);
+    font-family: Georgia, serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    padding: 6px 16px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .mode-btn.active {
+    background: rgba(99,102,241,0.2);
+    border-color: rgba(99,102,241,0.5);
+    color: #a78bfa;
+  }
+  #scorebar {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 20px;
+    font-size: 0.82rem;
+    letter-spacing: 0.1em;
+  }
+  .score-item { text-align: center; }
+  .score-num { font-size: 1.6rem; font-weight: 300; }
+  .score-label {
+    color: rgba(255,255,255,0.3);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  #correct-num { color: #4ade80; }
+  #wrong-num { color: #f87171; }
+  #remaining-num { color: rgba(255,255,255,0.5); }
+  #progress-bar {
+    width: 100%;
+    max-width: 640px;
+    height: 3px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 2px;
+    margin-bottom: 28px;
+    overflow: hidden;
+  }
+  #progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    border-radius: 2px;
+    transition: width 0.4s;
+    width: 0%;
+  }
+  #card {
+    width: 100%;
+    max-width: 640px;
+    min-height: 260px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 40px 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    transition: opacity 0.3s;
+  }
+  #question-type {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(150,150,255,0.6);
+  }
+  #question-text {
+    font-size: clamp(1.1rem, 3vw, 1.4rem);
+    line-height: 1.6;
+    color: rgba(255,255,255,0.9);
+  }
+  #question-text strong { color: #a78bfa; }
+  #answer-area {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .choice-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    color: rgba(255,255,255,0.8);
+    font-family: Georgia, serif;
+    font-size: 0.9rem;
+    padding: 14px 20px;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    line-height: 1.5;
+  }
+  .choice-btn:hover:not(:disabled) {
+    background: rgba(100,100,255,0.12);
+    border-color: rgba(100,100,255,0.3);
+  }
+  .choice-btn.correct {
+    background: rgba(74,222,128,0.12);
+    border-color: #4ade80;
+    color: #4ade80;
+  }
+  .choice-btn.wrong {
+    background: rgba(248,113,113,0.1);
+    border-color: #f87171;
+    color: #f87171;
+  }
+  .choice-btn.reveal {
+    background: rgba(74,222,128,0.08);
+    border-color: rgba(74,222,128,0.4);
+    color: rgba(74,222,128,0.8);
+  }
+  .choice-btn:disabled { cursor: default; }
+  #feedback {
+    font-size: 0.85rem;
+    min-height: 20px;
+    color: rgba(255,255,255,0.4);
+    font-style: italic;
+  }
+  #feedback.correct { color: #4ade80; }
+  #feedback.wrong { color: #f87171; }
+  #next-btn {
+    display: none;
+    margin-top: 8px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    color: rgba(255,255,255,0.6);
+    font-family: Georgia, serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 12px 24px;
+    cursor: pointer;
+    align-self: flex-end;
+    transition: background 0.2s, color 0.2s;
+  }
+  #next-btn:hover {
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.9);
+  }
+  #next-btn.visible { display: block; }
+  #results {
+    display: none;
+    width: 100%;
+    max-width: 640px;
+    text-align: center;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+  }
+  #results.visible { display: flex; }
+  #results h2 {
+    font-size: 1.8rem;
+    font-weight: 300;
+    letter-spacing: 0.1em;
+  }
+  #results .big-score { font-size: 4rem; font-weight: 300; }
+  #results p {
+    color: rgba(255,255,255,0.45);
+    line-height: 1.8;
+    font-size: 0.95rem;
+    max-width: 460px;
+  }
+  #restart-btn {
+    background: rgba(99,102,241,0.15);
+    border: 1px solid rgba(99,102,241,0.3);
+    border-radius: 10px;
+    color: #a78bfa;
+    font-family: Georgia, serif;
+    font-size: 0.9rem;
+    padding: 14px 32px;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: background 0.2s;
+  }
+  #restart-btn:hover { background: rgba(99,102,241,0.28); }
+</style>
+</head>
+<body>
+  <h1>Network Services</h1>
+  <div id="subtitle">CompTIA A+ · Section 2.3 · Active Recall</div>
+
+  <div id="mode-bar">
+    <button class="mode-btn active" data-mode="all">All Questions</button>
+    <button class="mode-btn" data-mode="core">Core Services</button>
+    <button class="mode-btn" data-mode="infra">Infrastructure</button>
+    <button class="mode-btn" data-mode="specialized">Specialized</button>
+    <button class="mode-btn" data-mode="scenarios">Scenarios</button>
+  </div>
+
+  <div id="scorebar">
+    <div class="score-item">
+      <div id="correct-num" class="score-num">0</div>
+      <div class="score-label">Correct</div>
+    </div>
+    <div class="score-item">
+      <div id="wrong-num" class="score-num">0</div>
+      <div class="score-label">Missed</div>
+    </div>
+    <div class="score-item">
+      <div id="remaining-num" class="score-num">0</div>
+      <div class="score-label">Remaining</div>
+    </div>
+  </div>
+
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+
+  <div id="card">
+    <div id="question-type">Question</div>
+    <div id="question-text"></div>
+    <div id="answer-area"></div>
+    <div id="feedback"></div>
+    <button id="next-btn">Next →</button>
+  </div>
+
+  <div id="results">
+    <h2>Round Complete</h2>
+    <div class="big-score" id="final-score"></div>
+    <p id="results-message"></p>
+    <button id="restart-btn">Practice Again</button>
+  </div>
+
+<script>
+const allQuestions = [
+  // ========== CORE SERVICES ==========
+  // DNS
+  { cat: 'core', type: 'DNS', q: 'What does <strong>DNS</strong> stand for?', answer: 'Domain Name System', choices: ['Domain Name System','Distributed Network Service','Dynamic Name Server','Directory Naming Standard'] },
+  { cat: 'core', type: 'DNS', q: 'What is the primary function of a <strong>DNS server</strong>?', answer: 'Converts names to IP addresses (and vice versa)', choices: ['Converts names to IP addresses (and vice versa)','Assigns IP addresses dynamically','Routes packets between networks','Blocks unwanted traffic'] },
+  { cat: 'core', type: 'DNS', q: 'Why is DNS described as a <strong>distributed</strong> naming system?', answer: 'The load is balanced across many different servers', choices: ['The load is balanced across many different servers','It stores data on a single master server','It uses peer-to-peer file sharing','All records live on the client device'] },
+
+  // DHCP
+  { cat: 'core', type: 'DHCP', q: 'What does <strong>DHCP</strong> stand for?', answer: 'Dynamic Host Configuration Protocol', choices: ['Dynamic Host Configuration Protocol','Distributed Hosting Control Protocol','Digital Host Connection Protocol','Dynamic Hardware Config Platform'] },
+  { cat: 'core', type: 'DHCP', q: 'What is the main job of a <strong>DHCP server</strong>?', answer: 'Automatic IP address configuration for clients', choices: ['Automatic IP address configuration for clients','Resolving domain names','Encrypting network traffic','Logging system events'] },
+  { cat: 'core', type: 'DHCP', q: 'In an enterprise, why are DHCP servers typically <strong>redundant</strong>?', answer: 'Without DHCP, new clients cannot get an IP — it is a critical service', choices: ['Without DHCP, new clients cannot get an IP — it is a critical service','Redundancy is only for appearance','So each server only serves one subnet','To allow more IP addresses per network'] },
+
+  // File share
+  { cat: 'core', type: 'File Share', q: 'What does <strong>SMB</strong> stand for (file sharing protocol)?', answer: 'Server Message Block', choices: ['Server Message Block','Shared Media Broker','Secure Messaging Bus','System Management Block'] },
+  { cat: 'core', type: 'File Share', q: 'What does <strong>AFP</strong> stand for?', answer: 'Apple Filing Protocol', choices: ['Apple Filing Protocol','Advanced File Protocol','Automated File Protection','Apple Folder Pipeline'] },
+  { cat: 'core', type: 'File Share', q: 'What is a <strong>file share</strong>?', answer: 'Centralized storage of documents, spreadsheets, videos, pictures, and other files', choices: ['Centralized storage of documents, spreadsheets, videos, pictures, and other files','A protocol for email delivery','An encryption standard for folders','A device that balances web traffic'] },
+  { cat: 'core', type: 'File Share', q: 'When you rename or delete a file on a share, what is the <strong>front-end hiding</strong>?', answer: 'The underlying protocol (SMB, AFP, etc.)', choices: ['The underlying protocol (SMB, AFP, etc.)','The filesystem type','The encryption key','The user identity'] },
+
+  // Print server
+  { cat: 'core', type: 'Print Server', q: 'What does <strong>IPP</strong> stand for?', answer: 'Internet Printing Protocol', choices: ['Internet Printing Protocol','Integrated Print Platform','Inline Printer Pipeline','Internal Print Protocol'] },
+  { cat: 'core', type: 'Print Server', q: 'What does <strong>LPD</strong> stand for?', answer: 'Line Printer Daemon', choices: ['Line Printer Daemon','Local Printer Driver','Legacy Print Device','Line Protocol Daemon'] },
+  { cat: 'core', type: 'Print Server', q: 'Which three protocols are commonly used by <strong>print servers</strong>?', answer: 'SMB, IPP, and LPD', choices: ['SMB, IPP, and LPD','HTTP, FTP, and SMTP','DNS, DHCP, and NTP','SSH, TLS, and RDP'] },
+  { cat: 'core', type: 'Print Server', q: 'A <strong>print server</strong> can exist in which two forms?', answer: 'Software on a computer connected to a printer, OR built into the printer itself', choices: ['Software on a computer connected to a printer, OR built into the printer itself','Only as a dedicated physical appliance','Only as cloud-based SaaS','Only as a driver installed on each client'] },
+
+  // Mail server
+  { cat: 'core', type: 'Mail Server', q: 'What are the <strong>two primary functions</strong> of a mail server?', answer: 'Store incoming mail, and send outgoing mail', choices: ['Store incoming mail, and send outgoing mail','Encrypt disk drives','Resolve domain names','Balance load across web servers'] },
+  { cat: 'core', type: 'Mail Server', q: 'Why do mail servers typically need <strong>24/7 support</strong>?', answer: 'They are one of the most important services — downtime disrupts communication', choices: ['They are one of the most important services — downtime disrupts communication','Because they power the entire internet','Because they replace DNS','For license compliance only'] },
+
+  // Syslog
+  { cat: 'core', type: 'Syslog', q: 'What is <strong>syslog</strong>?', answer: 'A standard for message logging', choices: ['A standard for message logging','A protocol for file transfer','An encryption algorithm','A virtualization layer'] },
+  { cat: 'core', type: 'Syslog', q: 'What does <strong>SIEM</strong> stand for?', answer: 'Security Information and Event Manager', choices: ['Security Information and Event Manager','System Integration and Event Monitor','Security Incident Escalation Module','Systems Intelligence Event Mapper'] },
+  { cat: 'core', type: 'Syslog', q: 'In an enterprise, syslog is typically integrated into what?', answer: 'A central SIEM for correlation and analysis', choices: ['A central SIEM for correlation and analysis','A lightweight email relay','The DNS resolver','A load balancer pool'] },
+  { cat: 'core', type: 'Syslog', q: 'What physical resource does a central syslog receiver consume a lot of?', answer: 'Disk space (logs grow fast)', choices: ['Disk space (logs grow fast)','GPU memory','Serial ports','Ink and toner'] },
+
+  // Web server
+  { cat: 'core', type: 'Web Server', q: 'Which two protocols are used to reach a <strong>web server</strong>?', answer: 'HTTP and HTTPS', choices: ['HTTP and HTTPS','FTP and SFTP','SMTP and IMAP','LDAP and RADIUS'] },
+  { cat: 'core', type: 'Web Server', q: 'Web pages can be served in which two ways?', answer: 'As static pages, or built dynamically in real-time', choices: ['As static pages, or built dynamically in real-time','Only through FTP downloads','Exclusively pre-compiled binaries','Only via email attachments'] },
+
+  // ========== INFRASTRUCTURE ==========
+  // Authentication / AAA
+  { cat: 'infra', type: 'Auth Server', q: 'What does <strong>AAA</strong> stand for?', answer: 'Authentication, Authorization, and Accounting', choices: ['Authentication, Authorization, and Accounting','Access, Audit, and Alerting','Authority, Allocation, and Assignment','Authentication, Allocation, and Accounting'] },
+  { cat: 'infra', type: 'Auth Server', q: 'An AAA server is often informally called what?', answer: 'The login server', choices: ['The login server','The print spooler','The name server','The file index'] },
+  { cat: 'infra', type: 'Auth Server', q: 'Is an AAA server typically needed on a <strong>home network</strong>?', answer: 'No — it is almost always an enterprise service', choices: ['No — it is almost always an enterprise service','Yes, every home router requires one','Only for IoT networks','Only for wireless networks'] },
+  { cat: 'infra', type: 'Auth Server', q: 'Why are AAA servers usually deployed as a <strong>redundant set</strong>?', answer: 'Authentication is critical — it must always be available', choices: ['Authentication is critical — it must always be available','To share the database across locations','To support more users simultaneously','For regulatory branding'] },
+
+  // Database servers
+  { cat: 'infra', type: 'Database', q: 'How is data stored in a standard database table?', answer: 'In columns and rows', choices: ['In columns and rows','As flat text files','As encrypted key-value blobs','As images and binaries'] },
+  { cat: 'infra', type: 'Database', q: 'What defines a <strong>relational database</strong>?', answer: 'Tables are linked together through relationships', choices: ['Tables are linked together through relationships','Data is stored only as JSON documents','It has no schema','It runs entirely in memory'] },
+  { cat: 'infra', type: 'Database', q: 'What does <strong>SQL</strong> stand for?', answer: 'Structured Query Language', choices: ['Structured Query Language','Simple Query Link','Sequential Query Logic','System Query Layer'] },
+  { cat: 'infra', type: 'Database', q: 'Name two common <strong>SQL database</strong> products.', answer: 'Microsoft SQL Server and MySQL', choices: ['Microsoft SQL Server and MySQL','MongoDB and Redis','Elasticsearch and Cassandra','DynamoDB and Firestore'] },
+
+  // NTP
+  { cat: 'infra', type: 'NTP', q: 'What does <strong>NTP</strong> stand for?', answer: 'Network Time Protocol', choices: ['Network Time Protocol','Network Transfer Protocol','Name Translation Process','Node Time Provider'] },
+  { cat: 'infra', type: 'NTP', q: 'Why does a network need accurate time?', answer: 'Encryption, logins, backups, and log timestamps all depend on synchronized clocks', choices: ['Encryption, logins, backups, and log timestamps all depend on synchronized clocks','It improves Wi-Fi signal','It reduces bandwidth usage','It is required for DNS lookups'] },
+  { cat: 'infra', type: 'NTP', q: 'What does an <strong>NTP client</strong> do?', answer: 'Requests time updates from an NTP server, commonly daily', choices: ['Requests time updates from an NTP server, commonly daily','Acts as a backup DNS','Routes traffic between VLANs','Stores user credentials'] },
+
+  // Spam gateway
+  { cat: 'infra', type: 'Spam Gateway', q: 'Where does a <strong>spam gateway</strong> block unsolicited email?', answer: 'At the gateway, before it reaches the user', choices: ['At the gateway, before it reaches the user','On the end-user client only','Inside the DNS cache','At the switch port'] },
+  { cat: 'infra', type: 'Spam Gateway', q: 'Where can a spam gateway be deployed?', answer: 'On-site or cloud-based', choices: ['On-site or cloud-based','Only on-premises','Only in the cloud','Only embedded in the router'] },
+
+  // All-in-one / UTM
+  { cat: 'infra', type: 'UTM', q: 'What does <strong>UTM</strong> stand for?', answer: 'Unified Threat Management', choices: ['Unified Threat Management','Universal Traffic Monitor','Unified Transport Mechanism','User Traffic Management'] },
+  { cat: 'infra', type: 'UTM', q: 'An <strong>all-in-one security appliance</strong> is also known by what names?', answer: 'Next-generation firewall (NGFW) / Web security gateway', choices: ['Next-generation firewall (NGFW) / Web security gateway','Layer-1 hub','Wireless access point','DNS forwarder'] },
+  { cat: 'infra', type: 'UTM', q: 'Which of these is NOT typically a function of an all-in-one security appliance?', answer: 'File backup scheduling', choices: ['File backup scheduling','URL filter / content inspection','Malware inspection and spam filter','IDS/IPS and VPN endpoint'] },
+
+  // Load balancer
+  { cat: 'infra', type: 'Load Balancer', q: 'What is the primary purpose of a <strong>load balancer</strong>?', answer: 'Distribute the load across multiple servers', choices: ['Distribute the load across multiple servers','Encrypt the client request','Resolve domain names','Push firmware updates'] },
+  { cat: 'infra', type: 'Load Balancer', q: 'To the <strong>end-user</strong>, a load balancer is:', answer: 'Invisible — they just see a single service', choices: ['Invisible — they just see a single service','A required driver install','A visible dashboard','A separate login prompt'] },
+  { cat: 'infra', type: 'Load Balancer', q: 'What are two classic <strong>large-scale uses</strong> for a load balancer?', answer: 'Web server farms and database farms', choices: ['Web server farms and database farms','Single-user desktop apps','Bluetooth audio streaming','Printer spooling on one host'] },
+  { cat: 'infra', type: 'Load Balancer', q: 'A server in the pool fails. Thanks to the load balancer:', answer: 'Convergence is fast and the outage has no effect on users', choices: ['Convergence is fast and the outage has no effect on users','All users are immediately disconnected','The entire site must be rebooted','Users must re-enter their credentials'] },
+
+  // Proxy server
+  { cat: 'infra', type: 'Proxy', q: 'What is a <strong>proxy server</strong>?', answer: 'An intermediate server that makes requests on behalf of the client', choices: ['An intermediate server that makes requests on behalf of the client','A backup DNS resolver','A storage pool for backups','A physical switch port'] },
+  { cat: 'infra', type: 'Proxy', q: 'What is the <strong>flow</strong> of a proxied request?', answer: 'Client → Proxy → Destination → Proxy → Client', choices: ['Client → Proxy → Destination → Proxy → Client','Client → Destination → Client','Proxy → Client → Destination','Destination → Client → Proxy'] },
+  { cat: 'infra', type: 'Proxy', q: 'Which of these is a common <strong>proxy feature</strong>?', answer: 'Access control, caching, URL filtering, content scanning', choices: ['Access control, caching, URL filtering, content scanning','RAID disk mirroring','DHCP lease renewal','Power-over-Ethernet delivery'] },
+
+  // ========== SPECIALIZED ==========
+  // SCADA / ICS
+  { cat: 'specialized', type: 'SCADA/ICS', q: 'What does <strong>SCADA</strong> stand for?', answer: 'Supervisory Control and Data Acquisition', choices: ['Supervisory Control and Data Acquisition','Secure Central Automated Data Access','System Control and Digital Audit','Supervisory Connection and Defense Agent'] },
+  { cat: 'specialized', type: 'SCADA/ICS', q: 'What does <strong>ICS</strong> stand for in this context?', answer: 'Industrial Control System', choices: ['Industrial Control System','Internet Connection Sharing','Integrated Cloud Service','Interior Command Suite'] },
+  { cat: 'specialized', type: 'SCADA/ICS', q: 'SCADA/ICS is commonly used in which industries?', answer: 'Power generation, refining, manufacturing, facilities, energy, and logistics', choices: ['Power generation, refining, manufacturing, facilities, energy, and logistics','Home entertainment streaming','Consumer online gaming','Retail point-of-sale only'] },
+  { cat: 'specialized', type: 'SCADA/ICS', q: 'Why is <strong>extensive segmentation</strong> required for SCADA?', answer: 'No access should be allowed from the outside — it is safety-critical', choices: ['No access should be allowed from the outside — it is safety-critical','It improves download speed','It is required by DNS','To reduce license costs'] },
+
+  // Legacy / embedded
+  { cat: 'specialized', type: 'Legacy/Embedded', q: 'What does "<strong>legacy system</strong>" usually mean?', answer: 'An older system that may still be really important to the business', choices: ['An older system that may still be really important to the business','A newly released platform','A cloud-native microservice','A mobile-only app'] },
+  { cat: 'specialized', type: 'Legacy/Embedded', q: 'What defines an <strong>embedded system</strong>?', answer: 'A purpose-built device, usually with no direct access to the operating system', choices: ['A purpose-built device, usually with no direct access to the operating system','A laptop used by a developer','A general-purpose cloud server','A web application framework'] },
+  { cat: 'specialized', type: 'Legacy/Embedded', q: 'Which of these is an example of an <strong>embedded system</strong>?', answer: 'Alarm system, door security, or time-card system', choices: ['Alarm system, door security, or time-card system','A gaming PC','A web browser','A spreadsheet application'] },
+
+  // IoT
+  { cat: 'specialized', type: 'IoT', q: 'What does <strong>IoT</strong> stand for?', answer: 'Internet of Things', choices: ['Internet of Things','Internal Office Tools','Integrated Online Tech','Interface Of Transfer'] },
+  { cat: 'specialized', type: 'IoT', q: 'Which of these is a common <strong>IoT device</strong>?', answer: 'Smart speaker, thermostat, or smart doorbell', choices: ['Smart speaker, thermostat, or smart doorbell','Rack-mounted database server','Core Layer-3 switch','Enterprise SAN array'] },
+  { cat: 'specialized', type: 'IoT', q: 'Why do IoT devices often belong on a <strong>segmented network</strong>?', answer: 'To limit the blast radius of any security breach', choices: ['To limit the blast radius of any security breach','To improve their Wi-Fi range','Because they require more bandwidth','To bypass DHCP entirely'] },
+
+  // ========== SCENARIOS ==========
+  { cat: 'scenarios', type: 'Scenario', q: 'Users connecting to the corporate network are stuck without an IP address. Which <strong>service is likely down</strong>?', answer: 'DHCP server', choices: ['DHCP server','DNS server','NTP server','Proxy server'] },
+  { cat: 'scenarios', type: 'Scenario', q: 'A user can ping 8.8.8.8 but cannot reach google.com. Which service is most likely the problem?', answer: 'DNS server', choices: ['DNS server','DHCP server','Load balancer','Mail server'] },
+  { cat: 'scenarios', type: 'Scenario', q: 'A company wants to centralize logs from dozens of servers and correlate events. What should they deploy?', answer: 'A central syslog receiver integrated into a SIEM', choices: ['A central syslog receiver integrated into a SIEM','A file server with write-only permissions','A second DHCP server','A secondary DNS server'] },
+  { cat: 'scenarios', type: 'Scenario', q: 'An e-commerce site is buckling under holiday traffic. Which service helps distribute the load?', answer: 'Load balancer', choices: ['Load balancer','Proxy server','Spam gateway','Syslog server'] },
+  { cat: 'scenarios', type: 'Scenario', q: 'The company wants every department to share Excel files from a central location. Which service fits?', answer: 'File share (file server)', choices: ['File share (file server)','SCADA system','Spam gateway','Web server'] },
+  { cat: 'scenarios', type: 'Scenario', q: 'You need to filter outbound web traffic, cache popular pages, and enforce URL rules. Which service?', answer: 'Proxy server', choices: ['Proxy server','DNS server','Print server','Database server'] },
+  { cat: 'scenarios', type: 'Scenario', q: 'Security wants URL filtering, malware inspection, IDS/IPS, and VPN termination — all on one device. What fits?', answer: 'All-in-one security appliance (UTM / NGFW)', choices: ['All-in-one security appliance (UTM / NGFW)','A standalone Layer-2 switch','A syslog server','A print server'] },
+  { cat: 'scenarios', type: 'Scenario', q: 'Log timestamps across servers are drifting, causing correlation issues. What do you deploy?', answer: 'NTP server for clock synchronization', choices: ['NTP server for clock synchronization','Additional DHCP scope','Another proxy','A new file share'] },
+  { cat: 'scenarios', type: 'Scenario', q: 'An ICS running a power substation was just added to the general corporate network. What is the correct action?', answer: 'Segment it off — SCADA/ICS should not be reachable from the outside', choices: ['Segment it off — SCADA/ICS should not be reachable from the outside','Leave it — it needs full internet access','Move it to the guest Wi-Fi','Disable DHCP for that subnet'] },
+  { cat: 'scenarios', type: 'Scenario', q: 'Employees are getting flooded with junk mail. Where is the best place to stop it?', answer: 'At a spam gateway (on-site or cloud-based)', choices: ['At a spam gateway (on-site or cloud-based)','On each user\'s phone manually','At the DHCP server','At the print server'] },
+  { cat: 'scenarios', type: 'Scenario', q: 'A new office wants one set of credentials to sign into every internal app. Which service enables this?', answer: 'Authentication server (AAA)', choices: ['Authentication server (AAA)','Spam gateway','NTP server','File share'] },
+  { cat: 'scenarios', type: 'Scenario', q: 'Smart thermostats and smart cameras are joining the network. Best practice?', answer: 'Put them on a segmented IoT network', choices: ['Put them on a segmented IoT network','Assign them all public IP addresses','Give them admin credentials','Disable their firmware updates'] },
+];
+
+// ========= STATE =========
+let mode = 'all';
+let queue = [];          // active question queue (may get re-queued for wrong answers)
+let seen = new Set();    // questions we've fully answered correctly this round
+let correct = 0;
+let wrong = 0;
+let totalThisRound = 0;
+let current = null;
+
+// ========= UTILS =========
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function filtered(m) {
+  if (m === 'all') return allQuestions.slice();
+  return allQuestions.filter(q => q.cat === m);
+}
+
+// ========= RENDER =========
+function startRound() {
+  const pool = filtered(mode);
+  queue = shuffle(pool);
+  seen = new Set();
+  correct = 0;
+  wrong = 0;
+  totalThisRound = pool.length;
+  document.getElementById('results').classList.remove('visible');
+  document.getElementById('card').style.display = 'flex';
+  updateScore();
+  nextQuestion();
+}
+
+function updateScore() {
+  document.getElementById('correct-num').textContent = correct;
+  document.getElementById('wrong-num').textContent = wrong;
+  document.getElementById('remaining-num').textContent = queue.length;
+  const done = totalThisRound - new Set([...seen]).size;
+  const pct = totalThisRound === 0 ? 0 : (seen.size / totalThisRound) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+function nextQuestion() {
+  document.getElementById('next-btn').classList.remove('visible');
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('feedback').className = '';
+  const area = document.getElementById('answer-area');
+  area.innerHTML = '';
+
+  if (queue.length === 0) {
+    showResults();
+    return;
+  }
+  current = queue.shift();
+  document.getElementById('question-type').textContent = current.type || 'Question';
+  document.getElementById('question-text').innerHTML = current.q;
+
+  const choices = shuffle(current.choices);
+  for (const c of choices) {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = c;
+    btn.addEventListener('click', () => selectAnswer(btn, c));
+    area.appendChild(btn);
+  }
+  updateScore();
+}
+
+function selectAnswer(btn, chosen) {
+  const buttons = document.querySelectorAll('.choice-btn');
+  buttons.forEach(b => b.disabled = true);
+  const feedback = document.getElementById('feedback');
+
+  if (chosen === current.answer) {
+    btn.classList.add('correct');
+    feedback.textContent = 'Correct.';
+    feedback.className = 'correct';
+    correct++;
+    seen.add(current.q);
+  } else {
+    btn.classList.add('wrong');
+    feedback.textContent = 'Not quite — the correct answer is highlighted.';
+    feedback.className = 'wrong';
+    wrong++;
+    // Reveal the right one
+    buttons.forEach(b => {
+      if (b.textContent === current.answer) b.classList.add('reveal');
+    });
+    // Spaced repetition: re-queue missed question near the end
+    const insertIdx = Math.min(queue.length, Math.max(2, Math.floor(queue.length / 2)));
+    queue.splice(insertIdx, 0, current);
+  }
+  updateScore();
+  document.getElementById('next-btn').classList.add('visible');
+}
+
+function showResults() {
+  document.getElementById('card').style.display = 'none';
+  const results = document.getElementById('results');
+  results.classList.add('visible');
+  const totalAnswered = correct + wrong;
+  const pct = totalAnswered === 0 ? 0 : Math.round((correct / totalAnswered) * 100);
+  document.getElementById('final-score').textContent = pct + '%';
+  let msg;
+  if (pct === 100 && wrong === 0) {
+    msg = 'Perfect run — every question answered correctly on the first try.';
+  } else if (pct >= 90) {
+    msg = 'Excellent. You are ready for the exam on this objective.';
+  } else if (pct >= 75) {
+    msg = 'Solid. Review the missed items and run it again.';
+  } else if (pct >= 50) {
+    msg = 'Getting there. Focus on the topics you missed and practice again.';
+  } else {
+    msg = 'Review the notes for this objective, then come back and practice.';
+  }
+  document.getElementById('results-message').textContent = msg;
+}
+
+// ========= EVENTS =========
+document.getElementById('next-btn').addEventListener('click', nextQuestion);
+document.getElementById('restart-btn').addEventListener('click', startRound);
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    mode = btn.dataset.mode;
+    startRound();
+  });
+});
+
+startRound();
+</script>
+</body>
+</html>
