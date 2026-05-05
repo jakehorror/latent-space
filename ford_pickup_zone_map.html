@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Liberty Ford Vermilion — Zone Map</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0b0f18;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 12px 28px;
+    font-family: 'Barlow', sans-serif;
+  }
+  header { text-align: center; margin-bottom: 14px; }
+  h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: 2rem;
+    color: #fff; text-transform: uppercase; letter-spacing: 0.07em;
+  }
+  h1 em { font-style: normal; color: #1e8cff; }
+  .sub { font-size: 0.7rem; color: #555; text-transform: uppercase; letter-spacing: 0.13em; margin-top: 3px; }
+  .wrap { width: 100%; max-width: 860px; }
+  svg { width: 100%; height: auto; display: block; }
+  .legend {
+    margin-top: 14px; display: flex; gap: 22px;
+    flex-wrap: wrap; justify-content: center;
+  }
+  .leg {
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 0.82rem; color: #888;
+    text-transform: uppercase; letter-spacing: 0.07em;
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .g { background: #3ecf5a; } .a { background: #f5a828; } .r { background: #e84040; }
+  .fn { margin-top: 10px; font-size: 0.68rem; color: #333; text-align: center; letter-spacing: 0.06em; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Liberty Ford <em>Vermilion</em></h1>
+  <p class="sub">Pickup &amp; Delivery — Zone Scheduling Map</p>
+</header>
+
+<div class="wrap">
+  <svg id="map" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="gg" x="-80%" y="-80%" width="260%" height="260%">
+        <feGaussianBlur stdDeviation="5" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="ag" x="-80%" y="-80%" width="260%" height="260%">
+        <feGaussianBlur stdDeviation="6" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="rg" x="-80%" y="-80%" width="260%" height="260%">
+        <feGaussianBlur stdDeviation="9" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="ps">
+        <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#000" flood-opacity="0.55"/>
+      </filter>
+      <radialGradient id="ro" cx="50%" cy="50%">
+        <stop offset="55%" stop-color="#e84040" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#e84040" stop-opacity="0.11"/>
+      </radialGradient>
+      <radialGradient id="rm" cx="50%" cy="50%">
+        <stop offset="38%" stop-color="#f5a828" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#f5a828" stop-opacity="0.13"/>
+      </radialGradient>
+      <radialGradient id="rl" cx="50%" cy="50%">
+        <stop offset="0%" stop-color="#3ecf5a" stop-opacity="0.22"/>
+        <stop offset="100%" stop-color="#3ecf5a" stop-opacity="0.04"/>
+      </radialGradient>
+    </defs>
+
+    <rect width="800" height="800" fill="#0b0f18"/>
+    <pattern id="dots" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse">
+      <circle cx="15" cy="15" r="0.7" fill="#181e2c"/>
+    </pattern>
+    <rect width="800" height="800" fill="url(#dots)"/>
+
+    <path d="M-10,356 Q85,372 172,368 Q286,378 400,376 Q490,363 582,324 Q660,318 722,320 L810,316 L810,-10 L-10,-10 Z"
+          fill="#0a1e3e" opacity="0.92"/>
+    <path d="M-10,356 Q85,372 172,368 Q286,378 400,376 Q490,363 582,324 Q660,318 722,320 L810,316"
+          fill="none" stroke="#1a4a8e" stroke-width="2" opacity="0.7"/>
+    <path d="M30,120 Q120,110 210,122 Q300,134 390,120" fill="none" stroke="#122a55" stroke-width="1.2" opacity="0.5"/>
+    <path d="M60,185 Q160,174 260,186 Q360,198 460,183" fill="none" stroke="#122a55" stroke-width="1" opacity="0.38"/>
+    <path d="M90,255 Q200,244 310,256 Q420,268 530,252" fill="none" stroke="#122a55" stroke-width="1" opacity="0.28"/>
+    <text x="55" y="170" font-family="'Barlow Condensed',sans-serif" font-weight="700"
+          font-size="22" fill="#1a3a6e" opacity="0.55" letter-spacing="5">LAKE ERIE</text>
+
+    <circle cx="400" cy="400" r="285" fill="url(#ro)" stroke="#e84040" stroke-width="1.5"
+            stroke-dasharray="10 5" opacity="0.7" filter="url(#rg)"/>
+    <circle cx="400" cy="400" r="175" fill="url(#rm)" stroke="#f5a828" stroke-width="2"
+            opacity="0.8" filter="url(#ag)"/>
+    <circle cx="400" cy="400" r="80" fill="url(#rl)" stroke="#3ecf5a" stroke-width="2.5"
+            opacity="0.88" filter="url(#gg)"/>
+
+    <rect x="358" y="307" width="84" height="17" rx="3" fill="#0b0f18" opacity="0.85"/>
+    <text x="400" y="320" text-anchor="middle" font-family="'Barlow Condensed',sans-serif"
+          font-weight="700" font-size="12" fill="#3ecf5a" letter-spacing="1">8:00 - 9:00 AM</text>
+
+    <rect x="282" y="217" width="236" height="17" rx="3" fill="#0b0f18" opacity="0.85"/>
+    <text x="400" y="230" text-anchor="middle" font-family="'Barlow Condensed',sans-serif"
+          font-weight="700" font-size="12" fill="#f5a828" letter-spacing="1">9:00 - 10:30 AM</text>
+
+    <rect x="320" y="107" width="160" height="17" rx="3" fill="#0b0f18" opacity="0.85"/>
+    <text x="400" y="120" text-anchor="middle" font-family="'Barlow Condensed',sans-serif"
+          font-weight="700" font-size="12" fill="#e84040" letter-spacing="1">BY 10:30 AM</text>
+
+  </svg>
+</div>
+
+<div class="legend">
+  <div class="leg"><div class="dot g"></div> Local - 8:00-9:00 AM</div>
+  <div class="leg"><div class="dot a"></div> Mid-Range - 9:00-10:30 AM</div>
+  <div class="leg"><div class="dot r"></div> Far - Book by 10:30 AM</div>
+</div>
+<p class="fn">Pickups 8am-11am · Lunch 12-1pm · Returns 1pm-5pm · Schedule local first, far last</p>
+
+<script>
+(function () {
+  const svg = document.getElementById('map');
+  const CX = 400, CY = 400;
+  const LS = 680, LA = 900;
+  const VL = 82.364, VT = 41.422;
+
+  function toXY(lat, lon) {
+    return [CX + (VL - lon) * LS, CY - (lat - VT) * LA];
+  }
+
+  const C = { local: '#3ecf5a', mid: '#f5a828', far: '#e84040' };
+
+  const cities = [
+    ['local', 'VERMILION', 41.422, 82.364, 'middle', 0, 10],
+    ['mid', 'HURON',        41.394, 82.555, 'end',    -12,  0],
+    ['mid', 'LORAIN',       41.452, 82.182, 'middle',   0, -14],
+    ['mid', 'AMHERST',      41.397, 82.223, 'start',   12,  0],
+    ['mid', 'S. AMHERST',   41.355, 82.253, 'start',   12,  0],
+    ['mid', 'SHEFFIELD',    41.470, 82.100, 'middle',   0, -14],
+    ['mid', 'BERLIN HTS',   41.322, 82.498, 'end',    -12,  0],
+    ['mid', 'FRELANDS',     41.370, 82.500, 'end',    -12,  8],
+    ['far', 'SANDUSKY',     41.449, 82.706, 'end',    -12,  0],
+    ['far', 'MILAN',        41.298, 82.603, 'end',    -12, -14],
+    ['far', 'NORWALK',      41.243, 82.615, 'end',    -12,  0],
+    ['far', 'WAKEMAN',      41.163, 82.399, 'middle',   0,  18],
+    ['far', 'WELLINGTON',   41.165, 82.219, 'start',   12,  0],
+    ['far', 'OBERLIN',      41.293, 82.218, 'start',   12,  0],
+    ['far', 'GRAFTON',      41.268, 82.057, 'start',   12,  0],
+    ['far', 'LAGRANGE',     41.234, 82.125, 'middle',   0,  18],
+    ['far', 'ELYRIA',       41.368, 82.107, 'start',   12,  0],
+    ['far', 'N. RIDGEVILLE',41.389, 82.017, 'start',   12,  0],
+    ['far', 'AVON',         41.452, 82.036, 'middle',   0, -14],
+    ['far', 'AVON LAKE',    41.505, 82.028, 'middle', -14, -14],
+    ['far', 'BAY VILLAGE',  41.485, 81.932, 'start',   12,  0],
+    ['far', 'WESTLAKE',     41.455, 81.918, 'end',    -12,  8],
+  ];
+
+  function el(tag, attrs) {
+    const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    return e;
+  }
+
+  const pinLayer = el('g', {});
+  const labelLayer = el('g', {});
+  svg.appendChild(pinLayer);
+  svg.appendChild(labelLayer);
+
+  cities.forEach(([zone, name, lat, lon, anchor, dx, dy]) => {
+    const [x, y] = toXY(lat, lon);
+    const c = C[zone];
+    const isLocal = zone === 'local';
+
+    const pg = el('g', { filter: 'url(#ps)' });
+
+    if (isLocal) {
+      pg.appendChild(el('circle', { cx: x, cy: y, r: 22, fill: c, opacity: '0.10' }));
+      pg.appendChild(el('circle', { cx: x, cy: y, r: 13, fill: c, opacity: '0.30' }));
+      pg.appendChild(el('circle', { cx: x, cy: y, r: 7,  fill: c, opacity: '0.90' }));
+      pg.appendChild(el('circle', { cx: x, cy: y, r: 3,  fill: 'white', opacity: '0.75' }));
+    } else {
+      pg.appendChild(el('path', {
+        d: `M${x},${y} L${x - 5},${y - 8} A8,8,0,0,0,${x + 5},${y - 8} Z`,
+        fill: c
+      }));
+      pg.appendChild(el('circle', { cx: x - 2, cy: y - 17, r: 2.2, fill: 'white', opacity: '0.38' }));
+    }
+    pinLayer.appendChild(pg);
+
+    const tx = x + dx;
+    const ty = isLocal ? y + dy : (y - 14 + dy);
+    const cw = 6.3;
+    const lw = name.length * cw + 8;
+    const lh = 14;
+    let bx = tx;
+    if (anchor === 'middle') bx -= lw / 2;
+    else if (anchor === 'end') bx -= (lw - 8);
+
+    labelLayer.appendChild(el('rect', {
+      x: bx - 2, y: ty - lh + 2, width: lw, height: lh + 2,
+      rx: 2, fill: '#0b0f18', opacity: '0.78'
+    }));
+
+    const t = el('text', {
+      x: tx, y: ty,
+      'text-anchor': anchor,
+      'font-family': "'Barlow Condensed', sans-serif",
+      'font-weight': isLocal ? '900' : '600',
+      'font-size': isLocal ? '14' : '11',
+      fill: c,
+      'letter-spacing': '0.5'
+    });
+    t.textContent = name;
+    labelLayer.appendChild(t);
+  });
+})();
+</script>
+
+</body>
+</html>
