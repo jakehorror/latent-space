@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Liberty Ford Vermilion — Zone Map</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #f5f3ef;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 32px;
+    font-family: 'Barlow', sans-serif;
+  }
+
+  header { text-align: center; margin-bottom: 16px; }
+  h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: 2rem;
+    color: #1a1a2e; text-transform: uppercase; letter-spacing: 0.07em;
+  }
+  h1 em { font-style: normal; color: #1565c0; }
+  .sub {
+    font-size: 0.7rem; color: #888;
+    text-transform: uppercase; letter-spacing: 0.13em; margin-top: 3px;
+  }
+
+  .wrap { width: 100%; max-width: 860px; }
+  svg { width: 100%; height: auto; display: block; }
+
+  .legend {
+    margin-top: 14px; display: flex; gap: 24px;
+    flex-wrap: wrap; justify-content: center;
+  }
+  .leg {
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 0.82rem; color: #444;
+    text-transform: uppercase; letter-spacing: 0.07em;
+  }
+  .dot { width: 11px; height: 11px; border-radius: 50%; border: 2px solid rgba(0,0,0,0.15); }
+  .g { background: #2e9e4f; }
+  .a { background: #d4820a; }
+  .r { background: #c62828; }
+
+  .fn {
+    margin-top: 10px; font-size: 0.7rem; color: #999;
+    text-align: center; letter-spacing: 0.05em;
+  }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .wrap { max-width: 100%; }
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Liberty Ford <em>Vermilion</em></h1>
+  <p class="sub">Pickup &amp; Delivery — Zone Scheduling Map</p>
+</header>
+
+<div class="wrap">
+  <svg id="map" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Subtle drop shadow for pins -->
+      <filter id="ps" x="-50%" y="-50%" width="200%" height="200%">
+        <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#00000033"/>
+      </filter>
+
+      <!-- Zone ring fills: light tints -->
+      <radialGradient id="ro" cx="50%" cy="50%">
+        <stop offset="50%" stop-color="#c62828" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#c62828" stop-opacity="0.08"/>
+      </radialGradient>
+      <radialGradient id="rm" cx="50%" cy="50%">
+        <stop offset="35%" stop-color="#d4820a" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#d4820a" stop-opacity="0.10"/>
+      </radialGradient>
+      <radialGradient id="rl" cx="50%" cy="50%">
+        <stop offset="0%" stop-color="#2e9e4f" stop-opacity="0.18"/>
+        <stop offset="100%" stop-color="#2e9e4f" stop-opacity="0.05"/>
+      </radialGradient>
+    </defs>
+
+    <!-- Page background -->
+    <rect width="800" height="800" fill="#f5f3ef"/>
+
+    <!-- Subtle paper texture grid -->
+    <pattern id="grid" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <line x1="40" y1="0" x2="40" y2="40" stroke="#e0ddd8" stroke-width="0.5"/>
+      <line x1="0" y1="40" x2="40" y2="40" stroke="#e0ddd8" stroke-width="0.5"/>
+    </pattern>
+    <rect width="800" height="800" fill="url(#grid)" opacity="0.6"/>
+
+    <!-- Lake Erie — light blue -->
+    <path d="M-10,356 Q85,372 172,368 Q286,378 400,376 Q490,363 582,324 Q660,318 722,320 L810,316 L810,-10 L-10,-10 Z"
+          fill="#daeaf7" opacity="0.9"/>
+    <!-- Shore line -->
+    <path d="M-10,356 Q85,372 172,368 Q286,378 400,376 Q490,363 582,324 Q660,318 722,320 L810,316"
+          fill="none" stroke="#5b9bd5" stroke-width="1.5" opacity="0.6"/>
+    <!-- Subtle wave lines -->
+    <path d="M30,120 Q120,110 210,122 Q300,134 390,120" fill="none" stroke="#a8c8e8" stroke-width="1" opacity="0.6"/>
+    <path d="M60,185 Q160,174 260,186 Q360,198 460,183" fill="none" stroke="#a8c8e8" stroke-width="1" opacity="0.45"/>
+    <path d="M90,255 Q200,244 310,256 Q420,268 530,252" fill="none" stroke="#a8c8e8" stroke-width="1" opacity="0.32"/>
+    <!-- Lake label -->
+    <text x="55" y="170" font-family="'Barlow Condensed',sans-serif" font-weight="700"
+          font-size="20" fill="#5b9bd5" opacity="0.65" letter-spacing="5">LAKE ERIE</text>
+
+    <!-- Zone rings -->
+    <circle cx="400" cy="400" r="285" fill="url(#ro)"
+            stroke="#c62828" stroke-width="1.8" stroke-dasharray="10 5" opacity="0.75"/>
+    <circle cx="400" cy="400" r="175" fill="url(#rm)"
+            stroke="#d4820a" stroke-width="2" opacity="0.85"/>
+    <circle cx="400" cy="400" r="80" fill="url(#rl)"
+            stroke="#2e9e4f" stroke-width="2.5" opacity="0.9"/>
+
+    <!-- Ring time labels -->
+    <rect x="352" y="307" width="96" height="18" rx="3" fill="#f5f3ef" opacity="0.9"/>
+    <text x="400" y="320" text-anchor="middle" font-family="'Barlow Condensed',sans-serif"
+          font-weight="700" font-size="12" fill="#2e7d32" letter-spacing="0.8">8:00 - 9:00 AM</text>
+
+    <rect x="278" y="217" width="244" height="18" rx="3" fill="#f5f3ef" opacity="0.9"/>
+    <text x="400" y="230" text-anchor="middle" font-family="'Barlow Condensed',sans-serif"
+          font-weight="700" font-size="12" fill="#b56a00" letter-spacing="0.8">9:00 - 10:30 AM</text>
+
+    <rect x="316" y="107" width="168" height="18" rx="3" fill="#f5f3ef" opacity="0.9"/>
+    <text x="400" y="120" text-anchor="middle" font-family="'Barlow Condensed',sans-serif"
+          font-weight="700" font-size="12" fill="#b71c1c" letter-spacing="0.8">BY 10:30 AM</text>
+  </svg>
+</div>
+
+<div class="legend">
+  <div class="leg"><div class="dot g"></div> Local - 8:00-9:00 AM</div>
+  <div class="leg"><div class="dot a"></div> Mid-Range - 9:00-10:30 AM</div>
+  <div class="leg"><div class="dot r"></div> Far - Book by 10:30 AM</div>
+</div>
+<p class="fn">Pickups 8am-11am · Lunch 12-1pm · Returns 1pm-5pm · Schedule local first, far last</p>
+
+<script>
+(function () {
+  const svg = document.getElementById('map');
+  const CX = 400, CY = 400;
+  const LS = 680, LA = 900;
+  const VL = 82.364, VT = 41.422;
+
+  function toXY(lat, lon) {
+    return [CX + (VL - lon) * LS, CY - (lat - VT) * LA];
+  }
+
+  const C = { local: '#2e9e4f', mid: '#d4820a', far: '#c62828' };
+  const LC = { local: '#1a6b33', mid: '#8a5000', far: '#8b0000' };
+
+  const cities = [
+    ['local', 'VERMILION',    41.422, 82.364, 'middle',   0,  10],
+    ['mid',   'HURON',        41.394, 82.555, 'end',    -12,   0],
+    ['mid',   'LORAIN',       41.452, 82.182, 'middle',   0, -14],
+    ['mid',   'AMHERST',      41.397, 82.223, 'start',   12,   0],
+    ['mid',   'S. AMHERST',   41.355, 82.253, 'start',   12,   0],
+    ['mid',   'SHEFFIELD',    41.470, 82.100, 'middle',   0, -14],
+    ['mid',   'BERLIN HTS',   41.322, 82.498, 'end',    -12,   0],
+    ['mid',   'FRELANDS',     41.370, 82.500, 'end',    -12,   8],
+    ['far',   'SANDUSKY',     41.449, 82.706, 'end',    -12,   0],
+    ['far',   'MILAN',        41.298, 82.603, 'end',    -12, -14],
+    ['far',   'NORWALK',      41.243, 82.615, 'end',    -12,   0],
+    ['far',   'WAKEMAN',      41.163, 82.399, 'middle',   0,  18],
+    ['far',   'WELLINGTON',   41.165, 82.219, 'start',   12,   0],
+    ['far',   'OBERLIN',      41.293, 82.218, 'start',   12,   0],
+    ['far',   'GRAFTON',      41.268, 82.057, 'start',   12,   0],
+    ['far',   'LAGRANGE',     41.234, 82.125, 'middle',   0,  18],
+    ['far',   'ELYRIA',       41.368, 82.107, 'start',   12,   0],
+    ['far',   'N. RIDGEVILLE',41.389, 82.017, 'start',   12,   0],
+    ['far',   'AVON',         41.452, 82.036, 'middle',   0, -14],
+    ['far',   'AVON LAKE',    41.505, 82.028, 'middle', -14, -14],
+    ['far',   'BAY VILLAGE',  41.485, 81.932, 'start',   12,   0],
+    ['far',   'WESTLAKE',     41.455, 81.918, 'end',    -12,   8],
+  ];
+
+  function el(tag, attrs) {
+    const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    return e;
+  }
+
+  const pinLayer   = el('g', {});
+  const labelLayer = el('g', {});
+  svg.appendChild(pinLayer);
+  svg.appendChild(labelLayer);
+
+  cities.forEach(([zone, name, lat, lon, anchor, dx, dy]) => {
+    const [x, y] = toXY(lat, lon);
+    const c  = C[zone];
+    const lc = LC[zone];
+    const isLocal = zone === 'local';
+
+    const pg = el('g', { filter: 'url(#ps)' });
+
+    if (isLocal) {
+      pg.appendChild(el('circle', { cx: x, cy: y, r: 20, fill: c, opacity: '0.12' }));
+      pg.appendChild(el('circle', { cx: x, cy: y, r: 12, fill: c, opacity: '0.30' }));
+      pg.appendChild(el('circle', { cx: x, cy: y, r: 7,  fill: c }));
+      pg.appendChild(el('circle', { cx: x, cy: y, r: 3,  fill: 'white', opacity: '0.85' }));
+    } else {
+      pg.appendChild(el('path', {
+        d: `M${x},${y} L${x-5},${y-8} A8,8,0,0,0,${x+5},${y-8} Z`,
+        fill: c
+      }));
+      pg.appendChild(el('circle', { cx: x-2, cy: y-17, r: 2, fill: 'white', opacity: '0.5' }));
+    }
+    pinLayer.appendChild(pg);
+
+    const tx = x + dx;
+    const ty = isLocal ? y + dy : (y - 14 + dy);
+    const cw = 6.3;
+    const lw = name.length * cw + 8;
+    const lh = 14;
+    let bx = tx;
+    if (anchor === 'middle') bx -= lw / 2;
+    else if (anchor === 'end') bx -= (lw - 8);
+
+    labelLayer.appendChild(el('rect', {
+      x: bx - 2, y: ty - lh + 2, width: lw, height: lh + 2,
+      rx: 2, fill: 'white', opacity: '0.85'
+    }));
+
+    const t = el('text', {
+      x: tx, y: ty,
+      'text-anchor': anchor,
+      'font-family': "'Barlow Condensed', sans-serif",
+      'font-weight': isLocal ? '900' : '700',
+      'font-size':   isLocal ? '14'  : '11',
+      fill: lc,
+      'letter-spacing': '0.5'
+    });
+    t.textContent = name;
+    labelLayer.appendChild(t);
+  });
+})();
+</script>
+</body>
+</html>
