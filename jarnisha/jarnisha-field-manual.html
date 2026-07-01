@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0a0b">
+<title>jarnisha.red — Sourdough Field Manual</title>
+<style>
+  :root{
+    --bg:#0a0a0b;
+    --panel:#141417;
+    --panel2:#101013;
+    --border:#26262b;
+    --red:#ff3b30;
+    --red-dim:#c9271e;
+    --red-deep:#3a1512;
+    --text:#e9e9ec;
+    --muted:#9a9aa4;
+    --green:#4ade80;
+    --amber:#f5b544;
+    --mono:ui-monospace,SFMono-Regular,"JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;background:var(--bg);color:var(--text);
+    font-family:var(--sans);font-size:15px;line-height:1.6;
+    padding:0 16px 60px;
+  }
+  .wrap{max-width:760px;margin:0 auto;}
+  a{color:var(--red);text-decoration:none;}
+
+  /* top terminal bar */
+  .termbar{
+    font-family:var(--mono);font-size:12px;color:var(--muted);
+    border-bottom:1px solid var(--border);
+    padding:12px 2px;margin-bottom:20px;
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;
+  }
+  .termbar .prompt{color:var(--green);}
+  .termbar .status{color:var(--red);letter-spacing:.5px;}
+  .blink{animation:blink 1.1s steps(1) infinite;}
+  @keyframes blink{50%{opacity:0;}}
+
+  /* hero */
+  .hero{padding:6px 0 22px;border-bottom:1px solid var(--border);margin-bottom:8px;}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:10px;}
+  h1{
+    font-family:var(--mono);font-size:30px;line-height:1.15;margin:0 0 10px;
+    letter-spacing:-.5px;font-weight:700;
+  }
+  h1 .dot{color:var(--red);}
+  .lede{color:var(--muted);font-size:15px;margin:0 0 16px;max-width:60ch;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{
+    font-family:var(--mono);font-size:11px;letter-spacing:.5px;
+    border:1px solid var(--red-dim);color:var(--red);
+    padding:4px 9px;border-radius:3px;background:var(--red-deep);
+  }
+
+  /* nav */
+  nav{
+    display:flex;flex-wrap:wrap;gap:6px 4px;
+    font-family:var(--mono);font-size:12px;
+    padding:16px 0 4px;margin-bottom:26px;
+    border-bottom:1px solid var(--border);
+  }
+  nav a{
+    color:var(--muted);border:1px solid var(--border);border-radius:3px;
+    padding:5px 9px;white-space:nowrap;
+  }
+  nav a:hover,nav a:active{color:var(--red);border-color:var(--red-dim);}
+
+  section{margin:0 0 34px;scroll-margin-top:14px;}
+  h2{
+    font-family:var(--mono);font-size:19px;margin:0 0 14px;
+    display:flex;align-items:baseline;gap:10px;letter-spacing:-.3px;
+  }
+  h2 .num{color:var(--red);font-weight:700;}
+  h3{font-family:var(--mono);font-size:14px;color:var(--text);margin:20px 0 8px;letter-spacing:.3px;}
+  p{margin:0 0 12px;}
+  .muted{color:var(--muted);}
+
+  /* root-cause / callout */
+  .callout{
+    border-left:3px solid var(--red);background:var(--panel);
+    padding:13px 16px;border-radius:0 5px 5px 0;margin:14px 0;
+  }
+  .callout.green{border-left-color:var(--green);}
+  .callout.amber{border-left-color:var(--amber);}
+  .callout b{color:var(--red);}
+  .callout.green b{color:var(--green);}
+  .callout.amber b{color:var(--amber);}
+
+  /* tables */
+  .tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:12px 0;border:1px solid var(--border);border-radius:5px;}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:340px;}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+  th{
+    font-family:var(--mono);font-size:11px;letter-spacing:.6px;text-transform:uppercase;
+    color:var(--red);background:var(--panel2);
+  }
+  tr:last-child td{border-bottom:none;}
+  td:first-child{font-family:var(--mono);color:var(--text);white-space:nowrap;}
+  .num-td td:first-child{color:var(--red);}
+
+  /* terminal code block */
+  .term{
+    font-family:var(--mono);font-size:13px;line-height:1.7;
+    background:#050506;border:1px solid var(--border);border-radius:5px;
+    padding:13px 15px;margin:12px 0;overflow-x:auto;color:#cfcfd6;
+  }
+  .term .c{color:var(--green);}      /* command */
+  .term .o{color:var(--muted);}      /* output/comment */
+  .term .r{color:var(--red);}
+  .term .a{color:var(--amber);}
+
+  /* steps */
+  ol.steps{list-style:none;counter-reset:s;padding:0;margin:6px 0;}
+  ol.steps>li{
+    counter-increment:s;position:relative;
+    padding:11px 0 11px 42px;border-bottom:1px solid var(--border);
+  }
+  ol.steps>li:last-child{border-bottom:none;}
+  ol.steps>li::before{
+    content:counter(s,decimal-leading-zero);
+    position:absolute;left:0;top:11px;
+    font-family:var(--mono);font-size:12px;font-weight:700;color:var(--red);
+    border:1px solid var(--red-dim);border-radius:3px;padding:1px 5px;background:var(--red-deep);
+  }
+  .step-t{font-family:var(--mono);color:var(--text);font-weight:600;}
+  .time{
+    font-family:var(--mono);font-size:11px;color:var(--amber);
+    border:1px solid #4a3813;background:#1c1408;border-radius:3px;
+    padding:1px 7px;margin-left:6px;white-space:nowrap;
+  }
+
+  /* checklist */
+  ul.check{list-style:none;padding:0;margin:8px 0;font-family:var(--mono);font-size:13px;}
+  ul.check li{padding:5px 0 5px 26px;position:relative;color:var(--text);}
+  ul.check li::before{content:"[ ]";position:absolute;left:0;color:var(--red);}
+
+  /* two-up cards */
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0;}
+  .card{border:1px solid var(--border);border-radius:5px;background:var(--panel);padding:14px 15px;}
+  .card h3{margin-top:0;color:var(--red);}
+  .card ul{margin:6px 0 0;padding-left:18px;font-size:13.5px;color:var(--muted);}
+  .card ul li{margin-bottom:5px;}
+  .card ul li b{color:var(--text);}
+
+  footer{
+    font-family:var(--mono);font-size:12px;color:var(--muted);
+    border-top:1px solid var(--border);padding:18px 2px;margin-top:10px;text-align:center;
+  }
+  footer .r{color:var(--red);}
+
+  @media (max-width:560px){
+    body{font-size:14.5px;}
+    h1{font-size:24px;}
+    h2{font-size:17px;}
+    .cards{grid-template-columns:1fr;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .blink{animation:none;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="termbar">
+    <span><span class="prompt">jarnisha@sourdough</span>:~$ cat field-manual.md<span class="blink">▌</span></span>
+    <span class="status">● STARTER: ACTIVE</span>
+  </div>
+
+  <div class="hero">
+    <div class="eyebrow">Practical Sourdough Notes</div>
+    <h1>jarnisha<span class="dot">.red</span> — Starter Field Manual</h1>
+    <p class="lede">Hands-on notes for keeping a live sourdough starter alive and shipping your first loaf. You were handed an <b>active</b> culture — no 7-day from-scratch build required. Feed it, read it, bake it.</p>
+    <div class="chips">
+      <span class="chip">ACTIVE STARTER</span>
+      <span class="chip">100% HYDRATION</span>
+      <span class="chip">BEGINNER SAFE</span>
+    </div>
+  </div>
+
+  <nav>
+    <a href="#concept">1. Concept</a>
+    <a href="#feeding">2. Feeding</a>
+    <a href="#maint">3. Maintenance</a>
+    <a href="#ready">4. Readiness</a>
+    <a href="#loaf">5. The Loaf</a>
+    <a href="#trouble">Troubleshooting</a>
+    <a href="#rules">Golden Rules</a>
+  </nav>
+
+  <section id="concept">
+    <h2><span class="num">1.</span> Core Concept — what a starter is</h2>
+    <p>A sourdough starter is a live colony of wild <b>yeast</b> and <b>bacteria</b> living in flour and water. It's the entire engine behind the bread — no commercial yeast needed.</p>
+    <div class="callout">
+      <b>Root idea:</b> the yeast makes gas (the <b style="color:var(--text)">rise</b>), the bacteria makes acid (the <b style="color:var(--text)">tang</b>). Feed them fresh flour and they thrive and rise; starve them and they go sour and sluggish. Every rule below is just a consequence of that one fact.
+    </div>
+  </section>
+
+  <section id="feeding">
+    <h2><span class="num">2.</span> Feeding — the 1:1:1 ratio</h2>
+    <p>"Feeding" = discard most of the old starter, then give what's left equal weights of fresh flour and water. The colony gets a fresh food supply and wakes back up.</p>
+    <div class="tblwrap">
+      <table>
+        <tr><th>Component</th><th>Amount</th><th>Notes</th></tr>
+        <tr><td>starter</td><td>25 g</td><td>keep this much, discard the rest</td></tr>
+        <tr><td>flour</td><td>25 g</td><td>plain / all-purpose / bread flour</td></tr>
+        <tr><td>water</td><td>25 g</td><td>lukewarm; filtered if your tap is chlorinated</td></tr>
+      </table>
+    </div>
+    <div class="term">
+<span class="o"># one feed, by weight — equal parts</span>
+<span class="c">$ feed --starter 25g --flour 25g --water 25g</span>
+<span class="o">→ stir to a thick paste, loose lid, wait for rise</span>
+    </div>
+    <div class="callout amber">
+      <b>The discard:</b> every feed you keep a spoonful and toss the rest — normal, not wasteful. Stash discard in a jar in the fridge and use it for pancakes, waffles, or crackers once you've got enough.
+    </div>
+    <div class="callout">
+      <b>Never seal the lid.</b> Rest the lid on top or leave it loose — do <b style="color:var(--text)">not</b> screw it down airtight. A feeding starter gives off CO₂, and a sealed jar builds pressure until it pops the lid, cracks the glass, or makes a mess on the counter. She needs to breathe.
+    </div>
+  </section>
+
+  <section id="maint">
+    <h2><span class="num">3.</span> Maintenance — pick one mode</h2>
+    <div class="cards">
+      <div class="card">
+        <h3>COUNTER</h3>
+        <ul>
+          <li><b>Feed every 12–24 hrs</b></li>
+          <li>Room temp, lid resting on (not sealed)</li>
+          <li>Doubles then falls — that peak is your leavening</li>
+          <li>Best if you bake a couple times a week</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>FRIDGE</h3>
+        <ul>
+          <li><b>Feed once a week</b></li>
+          <li>Feed, sit out 1–2 hrs, then chill</li>
+          <li>Cold = slow = low maintenance</li>
+          <li>To bake: pull out, feed 1–2× over a day to wake it</li>
+        </ul>
+      </div>
+    </div>
+    <p class="muted">Rule of thumb: baking a lot → counter. Baking now and then → fridge. You can switch anytime.</p>
+  </section>
+
+  <section id="ready">
+    <h2><span class="num">4.</span> Readiness — the float test</h2>
+    <p>A few hours after feeding, drop a small spoonful of starter into a glass of water.</p>
+    <div class="callout green"><b>PASS:</b> it floats → full of gas, at peak, ready to bake.</div>
+    <div class="callout"><b>FAIL:</b> it sinks → not ready. Give it more time or another feed.</div>
+    <p>At peak she's <b>bubbly, roughly doubled, domed on top</b>, and smells pleasantly sour and yeasty — think tangy beer, not nail polish.</p>
+    <h3>PASS signals</h3>
+    <ul class="check">
+      <li>doubled in volume since feeding</li>
+      <li>surface full of bubbles, domed not sunken</li>
+      <li>floats in water</li>
+      <li>smells tangy / yeasty, not sharp like acetone</li>
+    </ul>
+  </section>
+
+  <section id="loaf">
+    <h2><span class="num">5.</span> The Loaf — classic Dutch-oven boule</h2>
+    <p class="muted">One loaf · ~24 hrs mostly hands-off · needs a heavy lidded pot.</p>
+    <h3>Ingredients</h3>
+    <div class="tblwrap">
+      <table>
+        <tr><th>Item</th><th>Weight</th></tr>
+        <tr><td>bread flour</td><td>500 g</td></tr>
+        <tr><td>water (warm)</td><td>350 g</td></tr>
+        <tr><td>active starter</td><td>100 g</td></tr>
+        <tr><td>salt</td><td>10 g</td></tr>
+      </table>
+    </div>
+    <div class="callout"><b>Get a scale.</b> Sourdough is all ratios — cups will betray you. A $12 kitchen scale is the best money you'll spend on this.</div>
+
+    <h3>Method</h3>
+    <ol class="steps">
+      <li><span class="step-t">Prep the night before.</span> Feed the starter so it's bubbly and passes the float test when you begin.</li>
+      <li><span class="step-t">Mix</span><span class="time">~10 min</span><br>Combine flour + water into a shaggy dough, rest 30–60 min (autolyse). Then add starter + salt and squish together until cohesive.</li>
+      <li><span class="step-t">Stretch &amp; fold</span><span class="time">2–3 hrs</span><br>Every 30 min: wet hand, lift one side, stretch up, fold over. Rotate ×4. Do 3–4 rounds total, then rest. Goes from sticky lump to smooth and puffy.</li>
+      <li><span class="step-t">Bulk rise</span><span class="time">4–8 hrs</span><br>Cover, room temp, until grown ~50% and jiggly/bubbly. Warm kitchen = faster.</li>
+      <li><span class="step-t">Shape</span><span class="time">~10 min</span><br>Tip out, fold into a tight round, rest 15 min, shape tight again. Place seam-up in a floured towel-lined bowl.</li>
+      <li><span class="step-t">Cold proof</span><span class="time">12–16 hrs</span><br>Cover, fridge overnight. Builds flavor and makes scoring easy.</li>
+      <li><span class="step-t">Preheat</span><span class="time">45 min</span><br>Heat the empty Dutch oven (lid on) to 500°F / 260°C. Once it's up to temp, drop the oven to 450°F / 230°C right before the loaf goes in.</li>
+      <li><span class="step-t">Bake</span><span class="time">50 min total</span><br>Flip dough onto parchment, slash the top ~½" deep. Lower into the hot pot.</li>
+    </ol>
+
+    <div class="term">
+<span class="o"># the bake — Jarnisha house timing</span>
+<span class="c">$ preheat --temp 500F</span>  <span class="o"># then drop to 450F as the loaf goes in</span>
+<span class="c">$ bake --lid on  --temp 450F --time 30m</span>
+<span class="o">→ trapped steam gives the big oven-spring rise</span>
+<span class="c">$ bake --lid off --temp 450F --time 20m</span>
+<span class="o">→ crust browns and crisps</span>
+<span class="a">→ pull at deep golden-brown</span>
+    </div>
+
+    <div class="callout amber"><b>Then wait.</b> Cool on a rack at least 1 hr before cutting — it's still cooking inside and slicing hot ruins the crumb. Hardest step of the whole thing.</div>
+
+    <h3>Bake-day checklist</h3>
+    <ul class="check">
+      <li>starter fed & floating before you start</li>
+      <li>everything weighed on a scale</li>
+      <li>dough ~50% risen before shaping (don't underproof)</li>
+      <li>pot preheated fully before dough goes in</li>
+      <li>cooled 1 hr+ before slicing</li>
+    </ul>
+  </section>
+
+  <section id="trouble">
+    <h2>// Troubleshooting</h2>
+    <div class="tblwrap">
+      <table class="num-td">
+        <tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr>
+        <tr><td>grey liquid on top</td><td>hungry — that's "hooch"</td><td>pour off or stir in, then feed</td></tr>
+        <tr><td>sharp acetone smell</td><td>very hungry / underfed</td><td>feed more often or increase flour</td></tr>
+        <tr><td>no rise / sluggish</td><td>too cold or underfed</td><td>warmer spot, feed 1–2×/day for a few days</td></tr>
+        <tr><td>dense, flat loaf</td><td>underproofed or weak starter</td><td>longer bulk rise; bake only at peak</td></tr>
+        <tr><td>fuzzy pink/orange mold</td><td>contamination (rare)</td><td>discard it — this is the one "start over"</td></tr>
+      </table>
+    </div>
+    <p class="muted">Everything except mold is recoverable. Hooch and a sour smell just mean "feed me."</p>
+  </section>
+
+  <section id="rules">
+    <h2>// Golden Rules</h2>
+    <div class="tblwrap">
+      <table>
+        <tr><th>Rule</th><th>Why</th></tr>
+        <tr><td>weigh everything</td><td>sourdough is ratios — cups drift</td></tr>
+        <tr><td>bake only at peak</td><td>#1 fix for a dense loaf</td></tr>
+        <tr><td>don't rush the bulk rise</td><td>underproofing is the top beginner miss</td></tr>
+        <tr><td>a sour smell = hunger, not death</td><td>feed it, don't panic</td></tr>
+        <tr><td>only mold means start over</td><td>everything else is recoverable</td></tr>
+        <tr><td>cool before slicing</td><td>it's still cooking inside</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    Jarnisha lineage — passed on with love. <span class="r">Feed her, name your discard,</span> and hand a piece to someone else someday.
+  </footer>
+
+</div>
+</body>
+</html>
